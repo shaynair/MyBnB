@@ -1,6 +1,6 @@
 Address(latitude, longitude, postal_code, city, province, country, street_address)
 
-Users(SIN, first_name, last_name, latitude, longitude, birth_date, occupation, gender, registered_on)
+Users(SIN, first_name, last_name, latitude, longitude, birth_date, occupation, registered_on, login_on)
 RenterPayments(renterID, card_number, type, expirydate)
 ProfileRatings(userID, raterID, rating)
 ProfileComments(userID, commenterID, content, commented_on)
