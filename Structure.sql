@@ -29,6 +29,7 @@ CREATE TABLE users (
   birth_date DATE NOT NULL,
   occupation VARCHAR(50) NOT NULL,
   registered_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  login_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   gender ENUM('M', 'F', 'Unspecified') NOT NULL DEFAULT 'Unspecified',
   
   PRIMARY KEY (sin_id),
@@ -236,6 +237,7 @@ CREATE ASSERTION canceled_bookings_check
 				AND b.cancelerID != l.hostID));
 
 -- Ratings must come from a guest.
+-- NOTE: additional constraint, must have rented within past 2 months
 CREATE ASSERTION profile_ratings_check
 	CHECK (NOT EXISTS(SELECT r.raterID
 			FROM profile_ratings r
@@ -247,6 +249,7 @@ CREATE ASSERTION profile_ratings_check
 			)));
 
 -- Comments must come from a guest.
+-- NOTE: additional constraint, must have rented within past 2 months
 CREATE ASSERTION profile_comments_check
 	CHECK (NOT EXISTS(SELECT c.commenterID
 			FROM profile_comments c
@@ -256,4 +259,7 @@ CREATE ASSERTION profile_comments_check
 				JOIN listings l USING (listingID)
 				WHERE l.hostID = c.userID
 			)));
+			
+
+-- NOTE: additional constraint, must have rented within past 2 months for listing_comments and listing_ratings
 */

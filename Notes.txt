@@ -13,13 +13,15 @@ Amenities(listingID, type)
 SafetyFeatures(listingID, type)
 Availability(listingID, is_available, starts_on, ends_on, price)
 ListingRatings(listingID, raterID, rating) 
-ListingComments(listingID, commenterID, content, comment_time)
+ListingComments(listingID, commenterID, content, commented_on)
 
 
 TODO:
 - short description: purpose, problems encountered, solutions justification
 - ER diagram
-- sample data files
+- report
+
+BOTH:
 - user manual, system limitations, possibility for improvement
 
 OPERATIONS: (SATISFY CONSTRAINTS such as final price for future book, can't change availability if booked)
