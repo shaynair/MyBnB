@@ -1,0 +1,57 @@
+Address(latitude, longitude, postal_code, city, province, country, street_address)
+
+Users(SIN, first_name, last_name, latitude, longitude, birth_date, occupation, gender, registered_on)
+RenterPayments(renterID, card_number, type, expirydate)
+ProfileRatings(userID, raterID, rating)
+ProfileComments(userID, commenterID, content, commented_on)
+
+Bookings(renterID, listingID, status, starts_on, ends_on, price, num_guests, created_on)
+CanceledBookings(renterID, listingID, cancelerID, canceled_on)
+
+Listings(listingID, hostID, type, latitude, longitude, title, description, rules, num_bedrooms, num_beds, num_bathrooms, max_guests, created_on)
+Amenities(listingID, type)
+SafetyFeatures(listingID, type)
+Availability(listingID, is_available, starts_on, ends_on, price)
+ListingRatings(listingID, raterID, rating) 
+ListingComments(listingID, commenterID, content, comment_time)
+
+
+TODO:
+- short description: purpose, problems encountered, solutions justification
+- ER diagram
+- sample data files
+- user manual, system limitations, possibility for improvement
+
+OPERATIONS: (SATISFY CONSTRAINTS such as final price for future book, can't change availability if booked)
+- Create profile
+- Delete user
+- Create new listing
+- Book a listing
+- Change availability
+- Cancel a booking
+- Remove a listing
+- Comment (can't comment if haven't rented recently... same for other side)
+
+QUERIES:
+SEARCH (option to rank by price ASC or DESC, option to temporal filter, rank by rating, option to amenities, option to price range)
+- search specific listings in vicinity, rank by distance
+- search same/adjacent postal code
+- search exact address
+
+REPORTS:
+- total number of bookings in a specific date range by city
+- total number of listings per country, per country+city, per country+city+postalcode
+- rank hosts by total number of listings per country, or per city
+- provide any hosts that are over 10% the number of listings in that country and city (FLAG THESE)
+- rank renters by number of bookings in a time period, or in a time period per city (>= 2 per year)
+- rank hosts/renters with largest cancelations within a year
+- popular noun phrases associated with comments for a listing (word cloud)
+
+TOOLKIT:
+- function to help position a listing (suggest a price), suggest amenities
+	-> when suggesting amenities, find the price increase
+
+ASSUMPTIONS:
+- a person can be a host and a renter at the same time
+- more than one person cannot be the owner of the same credit card
+- a renter cannot rent out the same listing twice
