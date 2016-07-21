@@ -1,0 +1,42 @@
+Address
+	Attributes: latitude, longitude, postal code, city, province, country, street address
+	Keys: latitude, longitude
+	Connected to: 
+		Users ("Lives at", one address to many users, no attributes)
+		Listing ("Located at", one address to many listings, no attributes)
+
+Users
+	Attributes: SIN, first name, last name, birth date, occupation, register date time, login date time
+	Keys: SIN
+	Connected to: 
+		CreditCards ("Owns", one user to many credit cards, no attributes) 
+		Users ("Rates", many users to many users, "rating", "date time" attributes)
+		Users ("Comments on", many users to many users, "content", "date time" attributes)
+		Listings ("Hosts", one user to many listings, no attributes)
+		Listings ("Rates", many users to many listings, "rating", "date time" attributes)
+		Listings ("Comments on", many users to many listings, "content", "date time" attributes)
+		Availability ("Books or Cancels", one user to many availabilities, "status", "action date time", "number of guests" attributes)
+
+CreditCards
+	Attributes: card number, card type, expiry date
+	Keys: card number, card type
+
+Listings
+	Attributes: listing ID, listing type, title, description, rules, number of beds, number of bedrooms, number of bathrooms, max guests, post time
+	Keys: listing ID
+	Connected to: 
+		Amenities ("Has", many listings to many amenities, no attributes)
+		Safety Features ("Has", many listings to many safety features, no attributes)
+		Availability ("Is available on", one listing to many availabilities, no attributes)
+
+Amenities (WEAK ENTITY SET)
+	Attributes: type
+	Keys: type
+
+Safety Features (WEAK ENTITY SET)
+	Attributes: type
+	Keys: type
+
+Availability
+	Attributes: availability ID, is available?, type of space, start date time, end date time, price
+	Keys: availability ID

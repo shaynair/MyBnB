@@ -1,24 +1,5 @@
-Address(latitude, longitude, postal_code, city, province, country, street_address)
-
-Users(SIN, first_name, last_name, latitude, longitude, birth_date, occupation, registered_on, login_on)
-RenterPayments(renterID, card_number, type, expirydate)
-ProfileRatings(userID, raterID, rating)
-ProfileComments(userID, commenterID, content, commented_on)
-
-Bookings(renterID, listingID, status, starts_on, ends_on, price, num_guests, created_on)
-CanceledBookings(renterID, listingID, cancelerID, canceled_on)
-
-Listings(listingID, hostID, type, latitude, longitude, title, description, rules, num_bedrooms, num_beds, num_bathrooms, max_guests, created_on)
-Amenities(listingID, type)
-SafetyFeatures(listingID, type)
-Availability(listingID, is_available, starts_on, ends_on, price)
-ListingRatings(listingID, raterID, rating) 
-ListingComments(listingID, commenterID, content, commented_on)
-
-
 TODO:
 - short description: purpose, problems encountered, solutions justification
-- ER diagram
 - report
 
 BOTH:
@@ -53,7 +34,12 @@ TOOLKIT:
 - function to help position a listing (suggest a price), suggest amenities
 	-> when suggesting amenities, find the price increase
 
+========================================================================================================
+
+DESCRIPTION:
+
+
 ASSUMPTIONS:
 - a person can be a host and a renter at the same time
 - more than one person cannot be the owner of the same credit card
-- a renter cannot rent out the same listing twice
+- a host cannot create two listings at the same location

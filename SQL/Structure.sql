@@ -76,6 +76,8 @@ CREATE TABLE listings (
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID),
+  UNIQUE KEY (hostID, latitude, longitude),
+  UNIQUE KEY (hostID, title),
   FOREIGN KEY (hostID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
   
@@ -111,6 +113,7 @@ CREATE TABLE safety_features (
 
 DROP TABLE IF EXISTS availability CASCADE;
 CREATE TABLE availability (
+  availabilityID INTEGER NOT NULL AUTO_INCREMENT,
   listingID INTEGER NOT NULL,
   starts_on DATETIME NOT NULL,
   ends_on DATETIME NOT NULL,
@@ -118,13 +121,13 @@ CREATE TABLE availability (
   is_available ENUM('Yes', 'No') NOT NULL DEFAULT 'Yes',
   price REAL NOT NULL,
   
-  PRIMARY KEY (listingID, starts_on, ends_on),
+  PRIMARY KEY (availabilityID),
+  UNIQUE KEY (listingID, starts_on, ends_on),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
   
   INDEX (is_available),
   INDEX (price),
   INDEX (rent_type),
-  INDEX (starts_on, ends_on),
   
   CHECK (price > 0),
   CHECK (DATEDIFF(starts_on, ends_on) > 0)
@@ -132,36 +135,19 @@ CREATE TABLE availability (
 
 DROP TABLE IF EXISTS bookings CASCADE;
 CREATE TABLE bookings (
+  availabilityID INTEGER NOT NULL,
   renterID INTEGER NOT NULL,
-  listingID INTEGER NOT NULL,
-  status ENUM('Available', 'Canceled') NOT NULL DEFAULT 'Available',
-  starts_on DATETIME NOT NULL,
-  ends_on DATETIME NOT NULL,
+  status ENUM('Available', 'Canceled by Renter', 'Canceled by Host') NOT NULL DEFAULT 'Available',
   num_guests SMALLINT UNSIGNED NOT NULL,
-  created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
-  PRIMARY KEY (listingID, renterID),
-  FOREIGN KEY (listingID, starts_on, ends_on) REFERENCES availability(listingID, starts_on, ends_on) ON DELETE CASCADE,
+  PRIMARY KEY (availabilityID),
+  FOREIGN KEY (availabilityID) REFERENCES availability(availabilityID) ON DELETE CASCADE,
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
-  FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
   
   INDEX (status),
   
   CHECK (num_guests > 0)
-);
-
-DROP TABLE IF EXISTS canceled_bookings CASCADE;
-CREATE TABLE canceled_bookings (
-  renterID INTEGER NOT NULL,
-  listingID INTEGER NOT NULL,
-  cancelerID INTEGER NOT NULL,
-  canceled_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  
-  PRIMARY KEY (listingID, renterID),
-  FOREIGN KEY (listingID, renterID) REFERENCES bookings(listingID, renterID) ON DELETE CASCADE,
-  FOREIGN KEY (cancelerID) REFERENCES users(sin_id) ON DELETE CASCADE,
-  FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,  
-  FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS profile_ratings CASCADE;
@@ -169,6 +155,7 @@ CREATE TABLE profile_ratings (
   userID INTEGER NOT NULL,
   raterID INTEGER NOT NULL,
   rating SMALLINT UNSIGNED NOT NULL,
+  rated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (userID, raterID),
   FOREIGN KEY (userID) REFERENCES users(sin_id) ON DELETE CASCADE,
@@ -197,6 +184,7 @@ CREATE TABLE listing_ratings (
   listingID INTEGER NOT NULL,
   raterID INTEGER NOT NULL,
   rating SMALLINT UNSIGNED NOT NULL,
+  rated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID, raterID),
   FOREIGN KEY (listingID, raterID) REFERENCES bookings(listingID, renterID) ON DELETE CASCADE,
