@@ -42,6 +42,15 @@ CREATE TABLE users (
   CHECK (DATEDIFF(birthdate, CURDATE()) >= 18 * 365)
 );
 
+CREATE OR REPLACE VIEW user_information AS
+	(SELECT u.sin_id, u.first_name, u.last_name, u.birth_date,
+			u.occupation, u.registered_on, DATEDIFF(u.login_on, NOW()) AS last_login,
+			a.country, a.province, a.city, a.street_address, a.postal_code,
+			AVG(p.rating) AS average_rating
+			FROM users u
+			LEFT JOIN address a USING (latitude, longitude)
+			LEFT JOIN profile_ratings p ON p.userID = u.sin_id);
+
 DROP TABLE IF EXISTS renter_payments CASCADE;
 CREATE TABLE renter_payments (
   card_number BIGINT NOT NULL,
@@ -76,7 +85,6 @@ CREATE TABLE listings (
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID),
-  UNIQUE KEY (hostID, latitude, longitude),
   UNIQUE KEY (hostID, title),
   FOREIGN KEY (hostID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
@@ -86,6 +94,14 @@ CREATE TABLE listings (
   
   CHECK (max_guests > 0)
 );
+
+CREATE OR REPLACE VIEW listing_information AS
+	(SELECT l.listingID, l.title, l.description, l.rules, l.max_guests,
+			l.created_on, l.hostID, l.list_type, AVG(p.rating) AS average_rating,
+			a.country, a.province, a.city, a.street_address, a.postal_code
+			FROM listings l
+			LEFT JOIN address a USING (latitude, longitude)
+			LEFT JOIN listing_ratings r USING (listingID));
 
 DROP TABLE IF EXISTS amenities CASCADE;
 CREATE TABLE amenities (
@@ -150,6 +166,38 @@ CREATE TABLE bookings (
   CHECK (num_guests > 0)
 );
 
+CREATE OR REPLACE VIEW unbooked_availabilities AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
+			b.renterID, b.updated_on AS booking_time
+		FROM availabilities a
+		WHERE a.is_available = 'Yes'
+			AND NOT EXISTS(
+				SELECT b.renterID FROM bookings b 
+				WHERE b.availabilityID = a.availabilityID
+					AND b.status = 'Available'
+			));
+
+CREATE OR REPLACE VIEW available_bookings AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
+			b.renterID, b.updated_on AS booking_time
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		WHERE b.status = 'Available' AND a.is_available = 'Yes');
+		
+CREATE OR REPLACE VIEW canceled_bookings AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status, 
+			b.renterID, b.updated_on AS canceled_time, b.renterID AS cancelerID
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		WHERE b.status = 'Canceled by Renter' AND a.is_available = 'Yes')
+	UNION
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status,
+			b.renterID, b.updated_on AS canceled_time, l.hostID AS cancelerID
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		LEFT JOIN listings l USING (listingID)
+		WHERE b.status = 'Canceled by Host' AND a.is_available = 'Yes');
+
 DROP TABLE IF EXISTS profile_ratings CASCADE;
 CREATE TABLE profile_ratings (
   userID INTEGER NOT NULL,
@@ -205,7 +253,75 @@ CREATE TABLE listing_comments (
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
 );
 
+-- Reports 
 
+-- Get the total number of listings per country
+CREATE OR REPLACE VIEW listings_per_country AS
+	(SELECT a.country, COUNT(l.listingID) AS num_listings
+		FROM address a 
+		LEFT JOIN listings l USING (latitude, longitude)
+		GROUP BY a.country);
+
+-- Get the total number of listings per country and city
+CREATE OR REPLACE VIEW listings_per_city AS
+	(SELECT a.country, a.city, COUNT(l.listingID) AS num_listings
+		FROM address a 
+		LEFT JOIN listings l USING (latitude, longitude)
+		GROUP BY a.country, a.city);
+
+-- Get the total number of listings per country and city and postal code
+CREATE OR REPLACE VIEW listings_per_postal_code AS
+	(SELECT a.country, a.city, a.postal_code, COUNT(l.listingID) AS num_listings
+		FROM address a 
+		LEFT JOIN listings l USING (latitude, longitude)
+		GROUP BY a.country, a.city, a.postal_code);
+
+-- Get the total number of listings per host in a country
+CREATE OR REPLACE VIEW listings_per_host_in_country AS
+	(SELECT u.sin_id AS hostID, a.country, COUNT(l.listingID) AS num_listings
+		FROM users u
+		LEFT JOIN listings l ON l.hostID = u.sin_id
+		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
+		GROUP BY u.sin_id, a.country);
+		
+-- Get the total number of listings per host in a city
+CREATE OR REPLACE VIEW listings_per_host_in_city AS
+	(SELECT u.sin_id AS hostID, a.country, a.city, COUNT(l.listingID) AS num_listings
+		FROM users u
+		LEFT JOIN listings l ON l.hostID = u.sin_id
+		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
+		GROUP BY u.sin_id, a.country, a.city);
+		
+-- Get the percentage of a host's listings in a country and city
+CREATE OR REPLACE VIEW host_market_share AS
+	(SELECT h.hostID, h.country, h.city, 
+			h.num_listings / c.num_listings * 100 AS market_share
+		FROM listings_per_host_in_city h
+		LEFT JOIN listings_per_city c ON c.city = h.city AND c.country = h.country);
+
+-- Get the total number of cancellations per host within a year
+CREATE OR REPLACE VIEW cancellations_per_host AS
+	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
+		FROM canceled_bookings c
+		WHERE c.canceled_time >= DATEADD(year, -1, GETDATE())
+			AND c.status = 'Canceled by Host'
+		GROUP BY c.cancelerID);
+		
+-- Get the total number of cancellations per renter within a year
+CREATE OR REPLACE VIEW cancellations_per_renter AS
+	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
+		FROM canceled_bookings c
+		WHERE c.canceled_time >= DATEADD(year, -1, GETDATE())
+			AND c.status = 'Canceled by Renter'
+		GROUP BY c.cancelerID);
+		
+-- Get the total number of cancellations per user within a year
+CREATE OR REPLACE VIEW cancellations_per_renter AS
+	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
+		FROM canceled_bookings c
+		WHERE c.canceled_time >= DATEADD(year, -1, GETDATE())
+		GROUP BY c.cancelerID);
+		
 -- Assertions (Not supported in MySQL)
 /*
 -- We can't have two availabilities overlap.

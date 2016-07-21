@@ -1,6 +1,6 @@
 TODO:
 - short description: purpose, problems encountered, solutions justification
-- report
+- reports
 
 BOTH:
 - user manual, system limitations, possibility for improvement
@@ -22,12 +22,10 @@ SEARCH (option to rank by price ASC or DESC, option to temporal filter, rank by 
 - search exact address
 
 REPORTS:
-- total number of bookings in a specific date range by city
-- total number of listings per country, per country+city, per country+city+postalcode
-- rank hosts by total number of listings per country, or per city
-- provide any hosts that are over 10% the number of listings in that country and city (FLAG THESE)
-- rank renters by number of bookings in a time period, or in a time period per city (>= 2 per year)
-- rank hosts/renters with largest cancelations within a year
+- flag any hosts that are over 10% the number of listings in that country and city (FLAG THESE)
+
+- total number of bookings in a (specific date range) by city
+- rank renters by number of bookings in a (time period), or in a (time period) per city (>= 2 per year)
 - popular noun phrases associated with comments for a listing (word cloud)
 
 TOOLKIT:
@@ -40,6 +38,5 @@ DESCRIPTION:
 
 
 ASSUMPTIONS:
-- a person can be a host and a renter at the same time
+- a person can be a host and a renter at the same time (of different listings)
 - more than one person cannot be the owner of the same credit card
-- a host cannot create two listings at the same location
