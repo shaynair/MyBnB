@@ -12,7 +12,7 @@ CREATE TABLE address (
   postal_code VARCHAR(6) NOT NULL,
   
   PRIMARY KEY (latitude, longitude), 
-  UNIQUE KEY (street_address, postal_code),
+  UNIQUE (street_address, postal_code),
   
   INDEX (postal_code),
   INDEX (street_address),
@@ -28,6 +28,7 @@ CREATE TABLE users (
   sin_id INTEGER NOT NULL,
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(50) NOT NULL,
+  email VARCHAR(100) NOT NULL,
   latitude FLOAT NOT NULL,
   longitude FLOAT NOT NULL,
   birth_date DATE NOT NULL,
@@ -36,6 +37,7 @@ CREATE TABLE users (
   login_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (sin_id),
+  UNIQUE (email),
   FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
 
   -- Check if above 18
@@ -76,7 +78,7 @@ CREATE TABLE listings (
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID),
-  UNIQUE KEY (hostID, title),
+  UNIQUE (hostID, title),
   FOREIGN KEY (hostID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
   

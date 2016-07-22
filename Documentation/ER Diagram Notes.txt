@@ -1,5 +1,5 @@
 Address
-	Attributes: latitude, longitude, postal code, city, province, country, street address
+	Attributes: latitude, longitude, postal code, city, province, country, street address, email
 	Keys: latitude, longitude
 	Connected to: 
 		Users ("Lives at", one address to many users, no attributes)
