@@ -1,10 +1,37 @@
-CREATE DATABASE IF NOT EXISTS mybnb;
+DROP DATABASE IF EXISTS mybnb;
+CREATE DATABASE mybnb;
 USE mybnb;
+
+DROP TYPE IF EXISTS credit_card_types;
+CREATE TYPE credit_card_types AS ENUM('Visa', 'MasterCard', 'American Express');
+
+DROP TYPE IF EXISTS listing_types;
+CREATE TYPE listing_types AS ENUs('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
+				'Condominium', 'Bungalow', 'Cottage', 'Loft', 'Lighthouse',
+				'Dormitory', 'Castle', 'Boat', 'RV', 'Other');
+				
+DROP TYPE IF EXISTS amenity_types;
+CREATE TYPE amenity_types AS ENUM('Kitchen', 'Internet', 'TV', 'Essentials', 'Heating', 
+		'Air Conditioning', 'Washer', 'Dryer', 'Free Parking', 'Wireless', 
+		'Breakfast', 'Pets', 'Family Friendly', 'Suitable for Events',
+		'Smoking', 'Wheelchair Accessible', 'Elevator', 'Fireplace', 'Buzzer', 
+		'Doorman', 'Pool', 'Hot Tub', 'Gym', '24 Hours Check-In', 'Hangers', 
+		'Iron', 'Hair Dryer', 'Laptop-friendly Workspace');
+		
+DROP TYPE IF EXISTS safety_feature_types;
+CREATE TYPE safety_feature_types AS ENUM('Carbon Monoxide Detector', 'First Aid Kit', 
+				'Smoke Detector');
+				
+DROP TYPE IF EXISTS availability_types;
+CREATE TYPE availability_types AS ENUM('Full Location', 'Private Room', 'Shared Room');
+
+DROP TYPE IF EXISTS booking_status_types;
+CREATE TYPE booking_status_types AS ENUM('Available', 'Canceled by Renter', 'Canceled by Host');
 
 DROP TABLE IF EXISTS address CASCADE;
 CREATE TABLE address (
-  latitude FLOAT NOT NULL,
-  longitude FLOAT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
   country VARCHAR(50) NOT NULL,
   province VARCHAR(50) NOT NULL, 
   city VARCHAR(50) NOT NULL,
@@ -29,8 +56,8 @@ CREATE TABLE users (
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(50) NOT NULL,
   email VARCHAR(100) NOT NULL,
-  latitude FLOAT NOT NULL,
-  longitude FLOAT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
   birth_date DATE NOT NULL,
   occupation VARCHAR(50) NOT NULL,
   registered_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -48,7 +75,7 @@ DROP TABLE IF EXISTS renter_payments CASCADE;
 CREATE TABLE renter_payments (
   card_number BIGINT NOT NULL,
   renterID INTEGER NOT NULL,
-  card_type ENUM('Visa', 'MasterCard', 'American Express') NOT NULL,
+  card_type credit_card_types NOT NULL,
   expiry_date DATE NOT NULL,
   
   PRIMARY KEY (card_number, card_type),
@@ -62,12 +89,9 @@ DROP TABLE IF EXISTS listings CASCADE;
 CREATE TABLE listings (
   listingID INTEGER NOT NULL AUTO_INCREMENT,
   hostID INTEGER NOT NULL,
-  list_type ENUM('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
-				'Condominium', 'Bungalow', 'Cottage', 'Loft', 'Lighthouse',
-				'Dormitory', 'Castle', 'Boat', 'RV', 'Other') 
-				NOT NULL DEFAULT 'Other',
-  latitude FLOAT NOT NULL,
-  longitude FLOAT NOT NULL,
+  list_type listing_types NOT NULL DEFAULT 'Other',
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
   title VARCHAR(64) NOT NULL,
   description TEXT NOT NULL,
   rules TEXT NOT NULL,
@@ -91,12 +115,7 @@ CREATE TABLE listings (
 DROP TABLE IF EXISTS amenities CASCADE;
 CREATE TABLE amenities (
   listingID INTEGER NOT NULL,
-  amenity ENUM('Kitchen', 'Internet', 'TV', 'Essentials', 'Heating', 
-		'Air Conditioning', 'Washer', 'Dryer', 'Free Parking', 'Wireless', 
-		'Breakfast', 'Pets', 'Family Friendly', 'Suitable for Events',
-		'Smoking', 'Wheelchair Accessible', 'Elevator', 'Fireplace', 'Buzzer', 
-		'Doorman', 'Pool', 'Hot Tub', 'Gym', '24 Hours Check-In', 'Hangers', 
-		'Iron', 'Hair Dryer', 'Laptop-friendly Workspace') NOT NULL,
+  amenity amenity_types NOT NULL,
   
   PRIMARY KEY (listingID, amenity),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
@@ -105,8 +124,7 @@ CREATE TABLE amenities (
 DROP TABLE IF EXISTS safety_features CASCADE;
 CREATE TABLE safety_features (
   listingID INTEGER NOT NULL,
-  feature ENUM('Carbon Monoxide Detector', 'First Aid Kit', 
-				'Smoke Detector') NOT NULL,
+  feature safety_feature_types NOT NULL,
   
   PRIMARY KEY (listingID, feature),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
@@ -118,7 +136,7 @@ CREATE TABLE availability (
   listingID INTEGER NOT NULL,
   starts_on DATETIME NOT NULL,
   ends_on DATETIME NOT NULL,
-  rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
+  rent_type availability_types NOT NULL,
   price REAL NOT NULL,
   num_guests SMALLINT UNSIGNED NOT NULL,
   
@@ -136,7 +154,7 @@ DROP TABLE IF EXISTS bookings CASCADE;
 CREATE TABLE bookings (
   availabilityID INTEGER NOT NULL,
   renterID INTEGER NOT NULL,
-  status ENUM('Available', 'Canceled by Renter', 'Canceled by Host') NOT NULL DEFAULT 'Available',
+  status booking_status_types NOT NULL DEFAULT 'Available',
   updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (availabilityID),
@@ -209,14 +227,16 @@ CREATE OR REPLACE VIEW unbooked_availabilities AS
 			SELECT b.renterID FROM bookings b 
 			WHERE b.availabilityID = a.availabilityID
 				AND b.status = 'Available'
-		));
+		)
+	);
 
 CREATE OR REPLACE VIEW available_bookings AS
 	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
 			b.renterID, b.updated_on AS booking_time
 		FROM bookings b
 		LEFT JOIN availability a USING (availabilityID)
-		WHERE b.status = 'Available');
+		WHERE b.status = 'Available'
+	);
 		
 CREATE OR REPLACE VIEW canceled_bookings AS
 	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status, 
@@ -239,7 +259,8 @@ CREATE OR REPLACE VIEW listing_information AS
 			a.country, a.province, a.city, a.street_address, a.postal_code
 			FROM listings l
 			LEFT JOIN address a USING (latitude, longitude)
-			LEFT JOIN listing_ratings r USING (listingID));
+			LEFT JOIN listing_ratings r USING (listingID)
+	);
 
 CREATE OR REPLACE VIEW user_information AS
 	(SELECT u.sin_id, u.first_name, u.last_name, u.birth_date,
@@ -248,7 +269,8 @@ CREATE OR REPLACE VIEW user_information AS
 			AVG(p.rating) AS average_rating
 			FROM users u
 			LEFT JOIN address a USING (latitude, longitude)
-			LEFT JOIN profile_ratings p ON p.userID = u.sin_id);
+			LEFT JOIN profile_ratings p ON p.userID = u.sin_id
+	);
 		
 -- Reports 
 
@@ -257,21 +279,24 @@ CREATE OR REPLACE VIEW listings_per_country AS
 	(SELECT a.country, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
-		GROUP BY a.country);
+		GROUP BY a.country
+	);
 
 -- Get the total number of listings per country and city
 CREATE OR REPLACE VIEW listings_per_city AS
 	(SELECT a.country, a.city, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
-		GROUP BY a.country, a.city);
+		GROUP BY a.country, a.city
+	);
 
 -- Get the total number of listings per country and city and postal code
 CREATE OR REPLACE VIEW listings_per_postal_code AS
 	(SELECT a.country, a.city, a.postal_code, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
-		GROUP BY a.country, a.city, a.postal_code);
+		GROUP BY a.country, a.city, a.postal_code
+	);
 
 -- Get the total number of listings per host in a country
 CREATE OR REPLACE VIEW listings_per_host_in_country AS
@@ -279,7 +304,8 @@ CREATE OR REPLACE VIEW listings_per_host_in_country AS
 		FROM users u
 		LEFT JOIN listings l ON l.hostID = u.sin_id
 		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
-		GROUP BY u.sin_id, a.country);
+		GROUP BY u.sin_id, a.country
+	);
 		
 -- Get the total number of listings per host in a city
 CREATE OR REPLACE VIEW listings_per_host_in_city AS
@@ -287,14 +313,16 @@ CREATE OR REPLACE VIEW listings_per_host_in_city AS
 		FROM users u
 		LEFT JOIN listings l ON l.hostID = u.sin_id
 		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
-		GROUP BY u.sin_id, a.country, a.city);
+		GROUP BY u.sin_id, a.country, a.city
+	);
 		
 -- Get the percentage of a host's listings in a country and city
 CREATE OR REPLACE VIEW host_market_share AS
 	(SELECT h.hostID, h.country, h.city, 
 			h.num_listings / c.num_listings * 100 AS market_share
 		FROM listings_per_host_in_city h
-		LEFT JOIN listings_per_city c ON c.city = h.city AND c.country = h.country);
+		LEFT JOIN listings_per_city c ON c.city = h.city AND c.country = h.country
+	);
 
 -- Get the total number of cancellations per host within a year
 CREATE OR REPLACE VIEW cancellations_per_host AS
@@ -302,7 +330,8 @@ CREATE OR REPLACE VIEW cancellations_per_host AS
 		FROM canceled_bookings c
 		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 			AND c.status = 'Canceled by Host'
-		GROUP BY c.cancelerID);
+		GROUP BY c.cancelerID
+	);
 		
 -- Get the total number of cancellations per renter within a year
 CREATE OR REPLACE VIEW cancellations_per_renter AS
@@ -310,14 +339,16 @@ CREATE OR REPLACE VIEW cancellations_per_renter AS
 		FROM canceled_bookings c
 		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 			AND c.status = 'Canceled by Renter'
-		GROUP BY c.cancelerID);
+		GROUP BY c.cancelerID
+	);
 		
 -- Get the total number of cancellations per user within a year
 CREATE OR REPLACE VIEW cancellations_per_renter AS
 	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
 		FROM canceled_bookings c
 		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
-		GROUP BY c.cancelerID);
+		GROUP BY c.cancelerID
+	);
 		
 -- Assertions (Not supported in MySQL)
 /*
