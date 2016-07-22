@@ -119,6 +119,7 @@ CREATE TABLE availability (
   rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
   is_available ENUM('Yes', 'No') NOT NULL DEFAULT 'Yes',
   price REAL NOT NULL,
+  num_guests SMALLINT UNSIGNED NOT NULL,
   
   PRIMARY KEY (availabilityID),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
@@ -127,7 +128,8 @@ CREATE TABLE availability (
   INDEX (rent_type),
   
   CHECK (price > 0),
-  CHECK (DATEDIFF(starts_on, ends_on) > 0)
+  CHECK (DATEDIFF(starts_on, ends_on) > 0),
+  CHECK (num_guests > 0)
 );
 
 DROP TABLE IF EXISTS bookings CASCADE;
@@ -135,16 +137,13 @@ CREATE TABLE bookings (
   availabilityID INTEGER NOT NULL,
   renterID INTEGER NOT NULL,
   status ENUM('Available', 'Canceled by Renter', 'Canceled by Host') NOT NULL DEFAULT 'Available',
-  num_guests SMALLINT UNSIGNED NOT NULL,
   updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (availabilityID),
   FOREIGN KEY (availabilityID) REFERENCES availability(availabilityID) ON DELETE CASCADE,
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   
-  INDEX (status),
-  
-  CHECK (num_guests > 0)
+  INDEX (status)
 );
 
 DROP TABLE IF EXISTS profile_ratings CASCADE;
@@ -344,9 +343,9 @@ CREATE ASSERTION bookings_renter_host_check
 -- We can't have a booking have over the max guests allowed.
 CREATE ASSERTION bookings_guest_check
 	CHECK (NOT EXISTS(SELECT listingID
-			FROM bookings b
+			FROM availability a
 			JOIN listings l USING (listingID)
-			WHERE b.num_guests > l.max_guests));
+			WHERE a.num_guests > l.max_guests));
 
 -- We can only cancel by the host or a renter.
 CREATE ASSERTION canceled_bookings_check

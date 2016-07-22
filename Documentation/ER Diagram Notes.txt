@@ -15,7 +15,7 @@ Users
 		Listings ("Hosts", one user to many listings, no attributes)
 		Listings ("Rates", many users to many listings, "rating", "date time" attributes)
 		Listings ("Comments on", many users to many listings, "content", "date time" attributes)
-		Availability ("Books or Cancels", one user to many availabilities, "status", "action date time", "number of guests" attributes)
+		Availability ("Books or Cancels", one user to many availabilities, "status", "action date time")
 
 CreditCards
 	Attributes: card number, card type, expiry date
@@ -38,5 +38,5 @@ Safety Features (WEAK ENTITY SET)
 	Keys: type
 
 Availability
-	Attributes: availability ID, is available?, type of space, start date time, end date time, price
+	Attributes: availability ID, is available?, type of space, start date time, end date time, price, number of guests
 	Keys: availability ID
