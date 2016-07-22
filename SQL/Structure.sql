@@ -42,15 +42,6 @@ CREATE TABLE users (
   CHECK (DATEDIFF(birthdate, CURDATE()) >= 18 * 365)
 );
 
-CREATE OR REPLACE VIEW user_information AS
-	(SELECT u.sin_id, u.first_name, u.last_name, u.birth_date,
-			u.occupation, u.registered_on, DATEDIFF(u.login_on, NOW()) AS last_login,
-			a.country, a.province, a.city, a.street_address, a.postal_code,
-			AVG(p.rating) AS average_rating
-			FROM users u
-			LEFT JOIN address a USING (latitude, longitude)
-			LEFT JOIN profile_ratings p ON p.userID = u.sin_id);
-
 DROP TABLE IF EXISTS renter_payments CASCADE;
 CREATE TABLE renter_payments (
   card_number BIGINT NOT NULL,
@@ -94,14 +85,6 @@ CREATE TABLE listings (
   
   CHECK (max_guests > 0)
 );
-
-CREATE OR REPLACE VIEW listing_information AS
-	(SELECT l.listingID, l.title, l.description, l.rules, l.max_guests,
-			l.created_on, l.hostID, l.list_type, AVG(p.rating) AS average_rating,
-			a.country, a.province, a.city, a.street_address, a.postal_code
-			FROM listings l
-			LEFT JOIN address a USING (latitude, longitude)
-			LEFT JOIN listing_ratings r USING (listingID));
 
 DROP TABLE IF EXISTS amenities CASCADE;
 CREATE TABLE amenities (
@@ -164,38 +147,6 @@ CREATE TABLE bookings (
   CHECK (num_guests > 0)
 );
 
-CREATE OR REPLACE VIEW unbooked_availabilities AS
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
-			b.renterID, b.updated_on AS booking_time
-		FROM availabilities a
-		WHERE a.is_available = 'Yes'
-			AND NOT EXISTS(
-				SELECT b.renterID FROM bookings b 
-				WHERE b.availabilityID = a.availabilityID
-					AND b.status = 'Available'
-			));
-
-CREATE OR REPLACE VIEW available_bookings AS
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
-			b.renterID, b.updated_on AS booking_time
-		FROM bookings b
-		LEFT JOIN availability a USING (availabilityID)
-		WHERE b.status = 'Available' AND a.is_available = 'Yes');
-		
-CREATE OR REPLACE VIEW canceled_bookings AS
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status, 
-			b.renterID, b.updated_on AS canceled_time, b.renterID AS cancelerID
-		FROM bookings b
-		LEFT JOIN availability a USING (availabilityID)
-		WHERE b.status = 'Canceled by Renter' AND a.is_available = 'Yes')
-	UNION
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status,
-			b.renterID, b.updated_on AS canceled_time, l.hostID AS cancelerID
-		FROM bookings b
-		LEFT JOIN availability a USING (availabilityID)
-		LEFT JOIN listings l USING (listingID)
-		WHERE b.status = 'Canceled by Host' AND a.is_available = 'Yes');
-
 DROP TABLE IF EXISTS profile_ratings CASCADE;
 CREATE TABLE profile_ratings (
   userID INTEGER NOT NULL,
@@ -251,6 +202,57 @@ CREATE TABLE listing_comments (
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
 );
 
+
+CREATE OR REPLACE VIEW unbooked_availabilities AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
+			b.renterID, b.updated_on AS booking_time
+		FROM availabilities a
+		WHERE a.is_available = 'Yes'
+			AND NOT EXISTS(
+				SELECT b.renterID FROM bookings b 
+				WHERE b.availabilityID = a.availabilityID
+					AND b.status = 'Available'
+			));
+
+CREATE OR REPLACE VIEW available_bookings AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
+			b.renterID, b.updated_on AS booking_time
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		WHERE b.status = 'Available' AND a.is_available = 'Yes');
+		
+CREATE OR REPLACE VIEW canceled_bookings AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status, 
+			b.renterID, b.updated_on AS canceled_time, b.renterID AS cancelerID
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		WHERE b.status = 'Canceled by Renter' AND a.is_available = 'Yes')
+	UNION
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status,
+			b.renterID, b.updated_on AS canceled_time, l.hostID AS cancelerID
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		LEFT JOIN listings l USING (listingID)
+		WHERE b.status = 'Canceled by Host' AND a.is_available = 'Yes');
+
+		
+CREATE OR REPLACE VIEW listing_information AS
+	(SELECT l.listingID, l.title, l.description, l.rules, l.max_guests,
+			l.created_on, l.hostID, l.list_type, AVG(p.rating) AS average_rating,
+			a.country, a.province, a.city, a.street_address, a.postal_code
+			FROM listings l
+			LEFT JOIN address a USING (latitude, longitude)
+			LEFT JOIN listing_ratings r USING (listingID));
+
+CREATE OR REPLACE VIEW user_information AS
+	(SELECT u.sin_id, u.first_name, u.last_name, u.birth_date,
+			u.occupation, u.registered_on, DATEDIFF(u.login_on, NOW()) AS last_login,
+			a.country, a.province, a.city, a.street_address, a.postal_code,
+			AVG(p.rating) AS average_rating
+			FROM users u
+			LEFT JOIN address a USING (latitude, longitude)
+			LEFT JOIN profile_ratings p ON p.userID = u.sin_id);
+		
 -- Reports 
 
 -- Get the total number of listings per country
