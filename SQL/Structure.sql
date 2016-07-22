@@ -204,9 +204,8 @@ CREATE TABLE listing_comments (
 
 
 CREATE OR REPLACE VIEW unbooked_availabilities AS
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
-			b.renterID, b.updated_on AS booking_time
-		FROM availabilities a
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price
+		FROM availability a
 		WHERE a.is_available = 'Yes'
 			AND NOT EXISTS(
 				SELECT b.renterID FROM bookings b 
@@ -238,7 +237,7 @@ CREATE OR REPLACE VIEW canceled_bookings AS
 		
 CREATE OR REPLACE VIEW listing_information AS
 	(SELECT l.listingID, l.title, l.description, l.rules, l.max_guests,
-			l.created_on, l.hostID, l.list_type, AVG(p.rating) AS average_rating,
+			l.created_on, l.hostID, l.list_type, AVG(r.rating) AS average_rating,
 			a.country, a.province, a.city, a.street_address, a.postal_code
 			FROM listings l
 			LEFT JOIN address a USING (latitude, longitude)
@@ -303,7 +302,7 @@ CREATE OR REPLACE VIEW host_market_share AS
 CREATE OR REPLACE VIEW cancellations_per_host AS
 	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
 		FROM canceled_bookings c
-		WHERE c.canceled_time >= DATEADD(year, -1, GETDATE())
+		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 			AND c.status = 'Canceled by Host'
 		GROUP BY c.cancelerID);
 		
@@ -311,7 +310,7 @@ CREATE OR REPLACE VIEW cancellations_per_host AS
 CREATE OR REPLACE VIEW cancellations_per_renter AS
 	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
 		FROM canceled_bookings c
-		WHERE c.canceled_time >= DATEADD(year, -1, GETDATE())
+		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 			AND c.status = 'Canceled by Renter'
 		GROUP BY c.cancelerID);
 		
@@ -319,7 +318,7 @@ CREATE OR REPLACE VIEW cancellations_per_renter AS
 CREATE OR REPLACE VIEW cancellations_per_renter AS
 	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
 		FROM canceled_bookings c
-		WHERE c.canceled_time >= DATEADD(year, -1, GETDATE())
+		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 		GROUP BY c.cancelerID);
 		
 -- Assertions (Not supported in MySQL)
