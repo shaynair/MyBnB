@@ -63,7 +63,7 @@ DROP TABLE IF EXISTS listings CASCADE;
 CREATE TABLE listings (
   listingID INTEGER NOT NULL AUTO_INCREMENT,
   hostID INTEGER NOT NULL,
-  list_type ('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
+  list_type ENUM('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
 				'Condominium', 'Bungalow', 'Cottage', 'Loft', 'Lighthouse',
 				'Dormitory', 'Castle', 'Boat', 'RV', 'Other') NOT NULL DEFAULT 'Other',
   latitude REAL NOT NULL,
@@ -330,6 +330,14 @@ CREATE OR REPLACE VIEW cancellations_per_renter AS
 		FROM canceled_bookings c
 		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 		GROUP BY c.cancelerID
+	);
+	
+-- For getting bookings by city or by renter. Select the time period and use GROUP BY.
+CREATE OR REPLACE VIEW booking_locations AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.renterID,
+			l.country, l.province, l.city, l.street_address, l.postal_code
+		FROM available_bookings a
+		LEFT JOIN listing_information l USING (listingID)
 	);
 		
 -- Assertions (Not supported in MySQL)

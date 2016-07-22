@@ -23,7 +23,6 @@ SEARCH (option to rank by price ASC or DESC, option to temporal filter, rank by 
 
 REPORTS:
 - flag any hosts that are over 10% the number of listings in that country and city (FLAG THESE)
-
 - total number of bookings in a (specific date range) by city
 - rank renters by number of bookings in a (time period), or in a (time period) per city (>= 2 per year)
 - popular noun phrases associated with comments for a listing (word cloud)
