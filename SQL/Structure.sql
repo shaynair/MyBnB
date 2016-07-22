@@ -19,8 +19,8 @@ CREATE TABLE address (
   INDEX (country, province, city),
   
   -- Check co-ordinates
-  CHECK (latitude >= 0 AND latitude <= 360),
-  CHECK (longitude >= 0 AND longitude <= 360)
+  CHECK (latitude >= -180 AND latitude <= 180),
+  CHECK (longitude >= -180 AND longitude <= 180)
 );
 
 DROP TABLE IF EXISTS users CASCADE;
@@ -138,11 +138,9 @@ CREATE TABLE availability (
   price REAL NOT NULL,
   
   PRIMARY KEY (availabilityID),
-  UNIQUE KEY (listingID, starts_on, ends_on),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
   
-  INDEX (is_available),
-  INDEX (price),
+  INDEX (is_available, price),
   INDEX (rent_type),
   
   CHECK (price > 0),
@@ -235,7 +233,7 @@ CREATE TABLE listing_ratings (
   rated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID, raterID),
-  FOREIGN KEY (listingID, raterID) REFERENCES bookings(listingID, renterID) ON DELETE CASCADE,
+  FOREIGN KEY (raterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
   
   CHECK(rating > 0 AND rating < 6)
@@ -249,7 +247,7 @@ CREATE TABLE listing_comments (
   commented_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID, commenterID),
-  FOREIGN KEY (listingID, commenterID) REFERENCES bookings(listingID, renterID) ON DELETE CASCADE,
+  FOREIGN KEY (commenterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
 );
 
