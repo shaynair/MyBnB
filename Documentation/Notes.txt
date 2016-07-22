@@ -1,6 +1,5 @@
 TODO:
 - short description: purpose, problems encountered, solutions justification
-- reports
 
 BOTH:
 - user manual, system limitations, possibility for improvement
@@ -30,12 +29,3 @@ REPORTS:
 TOOLKIT:
 - function to help position a listing (suggest a price), suggest amenities
 	-> when suggesting amenities, find the price increase
-
-========================================================================================================
-
-DESCRIPTION:
-
-
-ASSUMPTIONS:
-- a person can be a host and a renter at the same time (of different listings)
-- more than one person cannot be the owner of the same credit card
