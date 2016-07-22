@@ -2,32 +2,6 @@ DROP DATABASE IF EXISTS mybnb;
 CREATE DATABASE mybnb;
 USE mybnb;
 
-DROP TYPE IF EXISTS credit_card_types;
-CREATE TYPE credit_card_types AS ENUM('Visa', 'MasterCard', 'American Express');
-
-DROP TYPE IF EXISTS listing_types;
-CREATE TYPE listing_types AS ENUs('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
-				'Condominium', 'Bungalow', 'Cottage', 'Loft', 'Lighthouse',
-				'Dormitory', 'Castle', 'Boat', 'RV', 'Other');
-				
-DROP TYPE IF EXISTS amenity_types;
-CREATE TYPE amenity_types AS ENUM('Kitchen', 'Internet', 'TV', 'Essentials', 'Heating', 
-		'Air Conditioning', 'Washer', 'Dryer', 'Free Parking', 'Wireless', 
-		'Breakfast', 'Pets', 'Family Friendly', 'Suitable for Events',
-		'Smoking', 'Wheelchair Accessible', 'Elevator', 'Fireplace', 'Buzzer', 
-		'Doorman', 'Pool', 'Hot Tub', 'Gym', '24 Hours Check-In', 'Hangers', 
-		'Iron', 'Hair Dryer', 'Laptop-friendly Workspace');
-		
-DROP TYPE IF EXISTS safety_feature_types;
-CREATE TYPE safety_feature_types AS ENUM('Carbon Monoxide Detector', 'First Aid Kit', 
-				'Smoke Detector');
-				
-DROP TYPE IF EXISTS availability_types;
-CREATE TYPE availability_types AS ENUM('Full Location', 'Private Room', 'Shared Room');
-
-DROP TYPE IF EXISTS booking_status_types;
-CREATE TYPE booking_status_types AS ENUM('Available', 'Canceled by Renter', 'Canceled by Host');
-
 DROP TABLE IF EXISTS address CASCADE;
 CREATE TABLE address (
   latitude REAL NOT NULL,
@@ -75,7 +49,7 @@ DROP TABLE IF EXISTS renter_payments CASCADE;
 CREATE TABLE renter_payments (
   card_number BIGINT NOT NULL,
   renterID INTEGER NOT NULL,
-  card_type credit_card_types NOT NULL,
+  card_type ENUM('Visa', 'MasterCard', 'American Express') NOT NULL,
   expiry_date DATE NOT NULL,
   
   PRIMARY KEY (card_number, card_type),
@@ -89,7 +63,9 @@ DROP TABLE IF EXISTS listings CASCADE;
 CREATE TABLE listings (
   listingID INTEGER NOT NULL AUTO_INCREMENT,
   hostID INTEGER NOT NULL,
-  list_type listing_types NOT NULL DEFAULT 'Other',
+  list_type ('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
+				'Condominium', 'Bungalow', 'Cottage', 'Loft', 'Lighthouse',
+				'Dormitory', 'Castle', 'Boat', 'RV', 'Other') NOT NULL DEFAULT 'Other',
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
   title VARCHAR(64) NOT NULL,
@@ -115,7 +91,12 @@ CREATE TABLE listings (
 DROP TABLE IF EXISTS amenities CASCADE;
 CREATE TABLE amenities (
   listingID INTEGER NOT NULL,
-  amenity amenity_types NOT NULL,
+  amenity ENUM('Kitchen', 'Internet', 'TV', 'Essentials', 'Heating', 
+		'Air Conditioning', 'Washer', 'Dryer', 'Free Parking', 'Wireless', 
+		'Breakfast', 'Pets', 'Family Friendly', 'Suitable for Events',
+		'Smoking', 'Wheelchair Accessible', 'Elevator', 'Fireplace', 'Buzzer', 
+		'Doorman', 'Pool', 'Hot Tub', 'Gym', '24 Hours Check-In', 'Hangers', 
+		'Iron', 'Hair Dryer', 'Laptop-friendly Workspace') NOT NULL,
   
   PRIMARY KEY (listingID, amenity),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
@@ -124,7 +105,8 @@ CREATE TABLE amenities (
 DROP TABLE IF EXISTS safety_features CASCADE;
 CREATE TABLE safety_features (
   listingID INTEGER NOT NULL,
-  feature safety_feature_types NOT NULL,
+  feature ENUM('Carbon Monoxide Detector', 'First Aid Kit', 
+				'Smoke Detector') NOT NULL,
   
   PRIMARY KEY (listingID, feature),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
@@ -136,7 +118,7 @@ CREATE TABLE availability (
   listingID INTEGER NOT NULL,
   starts_on DATETIME NOT NULL,
   ends_on DATETIME NOT NULL,
-  rent_type availability_types NOT NULL,
+  rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
   price REAL NOT NULL,
   num_guests SMALLINT UNSIGNED NOT NULL,
   
@@ -154,7 +136,7 @@ DROP TABLE IF EXISTS bookings CASCADE;
 CREATE TABLE bookings (
   availabilityID INTEGER NOT NULL,
   renterID INTEGER NOT NULL,
-  status booking_status_types NOT NULL DEFAULT 'Available',
+  status ENUM('Available', 'Canceled by Renter', 'Canceled by Host') NOT NULL DEFAULT 'Available',
   updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (availabilityID),
