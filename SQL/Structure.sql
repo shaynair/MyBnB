@@ -117,15 +117,13 @@ CREATE TABLE availability (
   starts_on DATETIME NOT NULL,
   ends_on DATETIME NOT NULL,
   rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
-  is_available ENUM('Yes', 'No') NOT NULL DEFAULT 'Yes',
   price REAL NOT NULL,
   num_guests SMALLINT UNSIGNED NOT NULL,
   
   PRIMARY KEY (availabilityID),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
   
-  INDEX (is_available, price),
-  INDEX (rent_type),
+  INDEX (rent_type, price),
   
   CHECK (price > 0),
   CHECK (DATEDIFF(starts_on, ends_on) > 0),
@@ -205,33 +203,32 @@ CREATE TABLE listing_comments (
 CREATE OR REPLACE VIEW unbooked_availabilities AS
 	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price
 		FROM availability a
-		WHERE a.is_available = 'Yes'
-			AND NOT EXISTS(
-				SELECT b.renterID FROM bookings b 
-				WHERE b.availabilityID = a.availabilityID
-					AND b.status = 'Available'
-			));
+		WHERE NOT EXISTS(
+			SELECT b.renterID FROM bookings b 
+			WHERE b.availabilityID = a.availabilityID
+				AND b.status = 'Available'
+		));
 
 CREATE OR REPLACE VIEW available_bookings AS
 	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, 
 			b.renterID, b.updated_on AS booking_time
 		FROM bookings b
 		LEFT JOIN availability a USING (availabilityID)
-		WHERE b.status = 'Available' AND a.is_available = 'Yes');
+		WHERE b.status = 'Available');
 		
 CREATE OR REPLACE VIEW canceled_bookings AS
 	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status, 
 			b.renterID, b.updated_on AS canceled_time, b.renterID AS cancelerID
 		FROM bookings b
 		LEFT JOIN availability a USING (availabilityID)
-		WHERE b.status = 'Canceled by Renter' AND a.is_available = 'Yes')
+		WHERE b.status = 'Canceled by Renter')
 	UNION
 	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, a.price, b.status,
 			b.renterID, b.updated_on AS canceled_time, l.hostID AS cancelerID
 		FROM bookings b
 		LEFT JOIN availability a USING (availabilityID)
 		LEFT JOIN listings l USING (listingID)
-		WHERE b.status = 'Canceled by Host' AND a.is_available = 'Yes');
+		WHERE b.status = 'Canceled by Host');
 
 		
 CREATE OR REPLACE VIEW listing_information AS
@@ -322,17 +319,6 @@ CREATE OR REPLACE VIEW cancellations_per_renter AS
 		
 -- Assertions (Not supported in MySQL)
 /*
--- We can't have two availabilities overlap.
-CREATE ASSERTION availability_check
-	(NOT EXISTS(SELECT listingID
-			FROM availability a
-			JOIN availability b USING (listingID)
-			WHERE a.is_available = b.is_available
-				AND a.startdatetime >= b.startdatetime
-				AND a.startdatetime <= b.enddatetime
-			GROUP BY listingID
-			HAVING COUNT(*) >= 1));
-
 -- We can't have a host book their own listing.
 CREATE ASSERTION bookings_renter_host_check
 	CHECK (NOT EXISTS(SELECT listingID

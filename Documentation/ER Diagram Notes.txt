@@ -38,5 +38,5 @@ Safety Features (WEAK ENTITY SET)
 	Keys: type
 
 Availability
-	Attributes: availability ID, is available?, type of space, start date time, end date time, price, number of guests
+	Attributes: availability ID, type of space, start date time, end date time, price, number of guests
 	Keys: availability ID
