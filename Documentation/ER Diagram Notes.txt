@@ -22,18 +22,13 @@ CreditCards
 	Keys: card number, card type
 
 Listings
-	Attributes: listing ID, listing type, title, description, number of beds, number of bedrooms, number of bathrooms, max guests, post time
+	Attributes: listing ID, listing type, title, description, number of beds, number of bedrooms, number of bathrooms, max guests, post time, is available?
 	Keys: listing ID
 	Connected to: 
 		Amenities ("Has", many listings to many amenities, no attributes)
-		Safety Features ("Has", many listings to many safety features, no attributes)
 		Availability ("Is available on", one listing to many availabilities, no attributes)
 
 Amenities (WEAK ENTITY SET)
-	Attributes: type
-	Keys: type
-
-Safety Features (WEAK ENTITY SET)
 	Attributes: type
 	Keys: type
 

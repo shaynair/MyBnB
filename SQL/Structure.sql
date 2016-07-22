@@ -96,19 +96,10 @@ CREATE TABLE amenities (
 		'Breakfast', 'Pets', 'Family Friendly', 'Suitable for Events',
 		'Smoking', 'Wheelchair Accessible', 'Elevator', 'Fireplace', 'Buzzer', 
 		'Doorman', 'Pool', 'Hot Tub', 'Gym', '24 Hours Check-In', 'Hangers', 
-		'Iron', 'Hair Dryer', 'Laptop-friendly Workspace') NOT NULL,
+		'Iron', 'Hair Dryer', 'Laptop-friendly Workspace',
+		'Carbon Monoxide Detector', 'First Aid Kit', 'Smoke Detector') NOT NULL,
   
   PRIMARY KEY (listingID, amenity),
-  FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
-);
-
-DROP TABLE IF EXISTS safety_features CASCADE;
-CREATE TABLE safety_features (
-  listingID INTEGER NOT NULL,
-  feature ENUM('Carbon Monoxide Detector', 'First Aid Kit', 
-				'Smoke Detector') NOT NULL,
-  
-  PRIMARY KEY (listingID, feature),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
 );
 
