@@ -68,6 +68,7 @@ CREATE TABLE listings (
 				'Dormitory', 'Castle', 'Boat', 'RV', 'Other') NOT NULL DEFAULT 'Other',
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
+  unit_number MEDIUMINT DEFAULT NULL,
   title VARCHAR(64) NOT NULL,
   description TEXT NOT NULL,
   num_bedrooms SMALLINT UNSIGNED NOT NULL,
@@ -78,10 +79,10 @@ CREATE TABLE listings (
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID),
-  UNIQUE (hostID, title),
   FOREIGN KEY (hostID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
   
+  INDEX (is_available), 
   INDEX (list_type, max_guests),
   INDEX (num_bedrooms, num_beds, num_bathrooms),
   
@@ -112,10 +113,12 @@ CREATE TABLE availability (
   rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
   daily_price REAL NOT NULL,
   num_guests SMALLINT UNSIGNED NOT NULL,
+  is_available ENUM('Yes', 'No') NOT NULL DEFAULT 'Yes',
   
   PRIMARY KEY (availabilityID),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
   
+  INDEX (is_available), 
   INDEX (starts_on, ends_on),
   INDEX (rent_type, daily_price),
   
@@ -206,7 +209,7 @@ CREATE OR REPLACE VIEW unbooked_availabilities AS
 			a.daily_price, a.num_guests
 		FROM availability a
 		LEFT JOIN listing_information l USING (listingID)
-		WHERE l.is_available = 'Yes' 
+		WHERE l.is_available = 'Yes'
 			AND NOT EXISTS(
 				SELECT b.renterID FROM bookings b 
 				WHERE b.availabilityID = a.availabilityID
@@ -223,7 +226,8 @@ CREATE OR REPLACE VIEW available_bookings AS
 		FROM bookings b
 		LEFT JOIN availability a USING (availabilityID)
 		LEFT JOIN listing_information l USING (listingID)
-		WHERE b.status = 'Available' AND l.is_available = 'Yes'
+		WHERE b.status = 'Available' AND l.is_available = 'Yes' 
+				AND a.is_available = 'Yes'
 	);
 		
 CREATE OR REPLACE VIEW canceled_bookings AS
