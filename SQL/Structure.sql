@@ -202,33 +202,6 @@ CREATE TABLE listing_comments (
   FOREIGN KEY (commenterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
 );
-
-
-CREATE OR REPLACE VIEW unbooked_availabilities AS
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, 
-			a.daily_price, a.num_guests
-		FROM availability a
-		LEFT JOIN listing_information l USING (listingID)
-		WHERE l.is_available = 'Yes'
-			AND NOT EXISTS(
-				SELECT b.renterID FROM bookings b 
-				WHERE b.availabilityID = a.availabilityID
-					AND b.status = 'Available'
-			)
-	);
-
--- For getting bookings by city or by renter: SELECT the time period and use GROUP BY.
-CREATE OR REPLACE VIEW available_bookings AS
-	(SELECT a.listingID, b.starts_on, b.ends_on, a.rent_type, b.num_guests, 
-			a.daily_price * DATEDIFF(b.starts_on, b.ends_on) AS total_price, 
-			b.renterID, b.updated_on AS booking_time,
-			l.country, l.province, l.city, l.street_address, l.postal_code
-		FROM bookings b
-		LEFT JOIN availability a USING (availabilityID)
-		LEFT JOIN listing_information l USING (listingID)
-		WHERE b.status = 'Available' AND l.is_available = 'Yes' 
-				AND a.is_available = 'Yes'
-	);
 		
 CREATE OR REPLACE VIEW canceled_bookings AS
 	(SELECT a.listingID, b.starts_on, b.ends_on, a.rent_type, b.num_guests, b.status, 
@@ -249,9 +222,9 @@ CREATE OR REPLACE VIEW canceled_bookings AS
 		
 -- Note: Make sure to use 'WHERE is_available = "Yes"'
 CREATE OR REPLACE VIEW listing_information AS
-	(SELECT l.listingID, l.title, l.description, l.max_guests,
+	(SELECT l.listingID, l.title, l.description, l.max_guests, l.is_available,
 			l.created_on, l.hostID, l.list_type, AVG(r.rating) AS average_rating,
-			a.country, a.province, a.city, a.street_address, a.postal_code
+			l.unit_number, a.country, a.province, a.city, a.street_address, a.postal_code
 			FROM listings l
 			LEFT JOIN address a USING (latitude, longitude)
 			LEFT JOIN listing_ratings r USING (listingID)
@@ -265,6 +238,33 @@ CREATE OR REPLACE VIEW user_information AS
 			FROM users u
 			LEFT JOIN address a USING (latitude, longitude)
 			LEFT JOIN profile_ratings p ON p.userID = u.sin_id
+	);
+	
+
+CREATE OR REPLACE VIEW unbooked_availabilities AS
+	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, 
+			a.daily_price, a.num_guests
+		FROM availability a
+		LEFT JOIN listing_information l USING (listingID)
+		WHERE l.is_available = 'Yes'
+			AND NOT EXISTS(
+				SELECT b.renterID FROM bookings b 
+				WHERE b.availabilityID = a.availabilityID
+					AND b.status = 'Available'
+			)
+	);
+	
+-- For getting bookings by city or by renter: SELECT the time period and use GROUP BY.
+CREATE OR REPLACE VIEW available_bookings AS
+	(SELECT a.listingID, b.starts_on, b.ends_on, a.rent_type, b.num_guests, 
+			a.daily_price * DATEDIFF(b.starts_on, b.ends_on) AS total_price, 
+			b.renterID, b.updated_on AS booking_time,
+			l.country, l.province, l.city, l.street_address, l.postal_code
+		FROM bookings b
+		LEFT JOIN availability a USING (availabilityID)
+		LEFT JOIN listing_information l USING (listingID)
+		WHERE b.status = 'Available' AND l.is_available = 'Yes' 
+				AND a.is_available = 'Yes'
 	);
 		
 -- Reports 
