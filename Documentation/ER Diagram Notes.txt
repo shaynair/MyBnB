@@ -20,6 +20,8 @@ Users
 CreditCards
 	Attributes: card number, card type, expiry date
 	Keys: card number, card type
+	Connected to:
+		Bookings ("Pays for", one credit card to many bookings, no attributes)
 
 Listings
 	Attributes: listing ID, listing type, title, description, number of beds, number of bedrooms, number of bathrooms, max guests, post time, is available?, unit number

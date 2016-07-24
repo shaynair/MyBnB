@@ -1,7 +1,4 @@
 TODO:
-- short description: purpose, problems encountered, solutions justification
-
-BOTH:
 - user manual, system limitations, possibility for improvement
 
 OPERATIONS: (SATISFY CONSTRAINTS such as final price for future book, can't change availability if booked)

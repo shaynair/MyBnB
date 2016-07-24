@@ -6,11 +6,11 @@ DROP TABLE IF EXISTS address CASCADE;
 CREATE TABLE address (
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
-  country VARCHAR(50) NOT NULL,
-  province VARCHAR(50) NOT NULL, 
-  city VARCHAR(50) NOT NULL,
-  street_address VARCHAR(100) NOT NULL,
-  postal_code VARCHAR(6) NOT NULL,
+  country VARCHAR(24) NOT NULL,
+  province VARCHAR(24) NOT NULL, 
+  city VARCHAR(24) NOT NULL,
+  street_address VARCHAR(256) NOT NULL,
+  postal_code VARCHAR(7) NOT NULL,
   
   PRIMARY KEY (latitude, longitude), 
   UNIQUE (street_address, postal_code),
@@ -136,9 +136,12 @@ CREATE TABLE bookings (
   ends_on DATE NOT NULL,
   status ENUM('Available', 'Canceled by Renter', 'Canceled by Host') NOT NULL DEFAULT 'Available',
   num_guests SMALLINT UNSIGNED NOT NULL,
+  card_number BIGINT NOT NULL,
+  card_type ENUM('Visa', 'MasterCard', 'American Express') NOT NULL,
   updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (bookingID),
+  FOREIGN KEY (card_number, card_type) REFERENCES renter_payments(card_number, card_type),
   FOREIGN KEY (availabilityID) REFERENCES availability(availabilityID) ON DELETE CASCADE,
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   
