@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +29,7 @@ public class Listing implements Updatable {
   private byte guests;
   private boolean available;
   private double avgRating;
+  private double avgPrice;
   private final Set<String> amenities = new HashSet<>();
   
   private final List<Comment> comments = new ArrayList<>();
@@ -46,10 +48,12 @@ public class Listing implements Updatable {
    * @param bedrooms
    * @param guests
    * @param available 
+   * @param avgRating
+   * @param avgPrice
    */
   public Listing(int id, BasicUser host, String type, Address address, String title, 
           String description, byte bathrooms, byte beds, byte bedrooms, byte guests, 
-          boolean available, double avgRating) {
+          boolean available, double avgRating, double avgPrice) {
     this.id = id;
     this.host = host;
     this.type = type;
@@ -62,6 +66,7 @@ public class Listing implements Updatable {
     this.guests = guests;
     this.available = available;
     this.avgRating = avgRating;
+    this.avgPrice = avgPrice;
   }
 
   /**
@@ -330,6 +335,75 @@ public class Listing implements Updatable {
   public void setAvgRating(double avgRating) {
     this.avgRating = avgRating;
   }
+
+  /**
+   * Get avg Price
+   * @return avg Price
+   */
+  public double getAvgPrice() {
+    return avgPrice;
+  }
+
+  /**
+   * Set avg Price
+   * @param avgPrice
+   */
+  public void setAvgPrice(double avgPrice) {
+    this.avgPrice = avgPrice;
+  }
+  
+  /**
+   * Get average price
+   * @return average
+   */
+  public double getAveragePrice() {
+    if (availabilities.isEmpty()) {
+      return avgPrice;
+    }
+    return availabilities.stream().mapToDouble(a -> a.getPrice())
+            .average().getAsDouble();
+  }
+  
+  /**
+   * Get average rating
+   * @return average
+   */
+  public double getAverageRating() {
+    if (ratings.isEmpty()) {
+      return avgRating;
+    }
+    return ratings.stream().mapToDouble(a -> a.getContent())
+            .average().getAsDouble();
+  }
+  
+  public Availability getAvailability(Date begin, Date end) {
+    for (Availability av : availabilities) {
+      if ((av.getStart().after(begin) || av.getStart().equals(begin))
+        && (av.getEnd().before(end) || av.getEnd().equals(end))
+              && !av.isNotBooked()) {
+        return av;
+      }
+    }
+    return null;
+  }
+  
+  public boolean intersects(Date begin, Date end) {
+    for (Availability av : availabilities) {
+      if ((av.getStart().before(end) || av.getStart().equals(end))
+        && (av.getEnd().after(begin) || av.getEnd().equals(begin))) {
+        return true;
+      }
+    }
+    return false;
+  }
+  public boolean hasAllAmenities(Set<String> amen) {
+    for (String s : amen) {
+      if (!amenities.contains(s)) {
+        return false;
+      }
+    }
+    return true;
+  }
   
   @Override
   public void insert(Connection con) throws SQLException {
@@ -411,4 +485,11 @@ public class Listing implements Updatable {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return "[" + title + "] Rating: " + getAverageRating() + "/5, Price: " + 
+            getAveragePrice() + ", Type: " + type;
+  }
+  
 }

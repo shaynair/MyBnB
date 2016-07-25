@@ -163,6 +163,21 @@ public class Address implements Insertable {
   public void setCountry(String country) {
     this.country = country;
   }
+  
+  /**
+   * Gets kilometers distance using Haversine formula.
+   * @param lat2
+   * @param lon2
+   * @return km distance
+   */
+  public double calcDistance(double lat2, double lon2) {
+    final double R = 6371; // Radius of the earth in km
+    double dLat = Math.sin(Math.toRadians(lat2 - latitude) / 2); 
+    double dLon = Math.sin(Math.toRadians(lon2 - longitude) / 2); 
+    double a = dLat * dLat + dLon * dLon +
+      Math.cos(Math.toRadians(latitude)) * Math.cos(Math.toRadians(lat2)); 
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
   @Override
   public void insert(Connection con) throws SQLException {
@@ -179,5 +194,11 @@ public class Address implements Insertable {
       ps.setString(7, postalCode);
       ps.executeUpdate();
     } 
+  }
+
+  @Override
+  public String toString() {
+    return country + ", " + province + ", " + city + " (" + latitude + ", " + 
+            longitude + ") " + street + ", " + postalCode;
   }
 }

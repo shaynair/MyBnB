@@ -27,15 +27,15 @@ public class SQLConstants {
   /**
    * The enum types to parse.
    */
-  public static final Map<String, Collection<String>> enumTables = new HashMap<>();
+  public static final Map<String, Collection<String>> ENUM_TABLES = new HashMap<>();
   
   static {
     // <table name> -> <column names>
-    enumTables.put("renter_payments", Collections.singleton("card_type"));
-    enumTables.put("listings", Collections.singleton("list_type"));
-    enumTables.put("amenities", Collections.singleton("amenity"));
-    enumTables.put("availability", Arrays.asList("rent_type"));
-    enumTables.put("bookings", Collections.singleton("status"));
+    ENUM_TABLES.put("renter_payments", Collections.singleton("card_type"));
+    ENUM_TABLES.put("listings", Collections.singleton("list_type"));
+    ENUM_TABLES.put("amenities", Collections.singleton("amenity"));
+    ENUM_TABLES.put("availability", Arrays.asList("rent_type"));
+    ENUM_TABLES.put("bookings", Collections.singleton("status"));
   }
 
   /**

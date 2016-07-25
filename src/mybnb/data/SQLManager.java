@@ -29,7 +29,7 @@ public class SQLManager {
   private Queue<Connection> allConnections = new ConcurrentLinkedQueue<>();
 
   // Connection manager to localize.
-  private ThreadLocal<Connection> connections = new ThreadLocal<Connection>() {
+  private final ThreadLocal<Connection> connections = new ThreadLocal<Connection>() {
 
     @Override
     protected Connection initialValue() {

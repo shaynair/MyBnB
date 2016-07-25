@@ -1,10 +1,7 @@
 package mybnb.struct;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.Date;
+import mybnb.data.DateConstants;
 
 /**
  * A user struct.
@@ -164,4 +161,17 @@ public class BasicUser {
   public void setAvgRating(double avgRating) {
     this.avgRating = avgRating;
   }
+  
+  public double getAverageRating() {
+    return avgRating;
+  }
+
+  @Override
+  public String toString() {
+    return firstName + " " + lastName + " (" + email + "): " + occupation + 
+            " Birthday: " + DateConstants.serializeDate(birthdate) 
+            + ", Rating: " + getAverageRating() + "/5";
+  }
+  
+  
 }

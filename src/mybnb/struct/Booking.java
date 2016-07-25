@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import mybnb.data.DateConstants;
 import mybnb.data.SQLConstants;
 
 /**
@@ -244,5 +245,11 @@ public class Booking implements Updatable {
       ps.setInt(5, getId());
       ps.executeUpdate();
     }
+  }
+
+  @Override
+  public String toString() {
+    return status + " from " + DateConstants.serializeDate(starts) + 
+            " to " + DateConstants.serializeDate(ends) + " by " + guests + " guests";
   }
 }

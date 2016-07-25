@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
+import mybnb.data.DateConstants;
 
 /**
  * Stores an instance of a credit card.
@@ -127,4 +128,12 @@ public class CreditCard implements Updatable {
       ps.executeUpdate();
     }
   }
+
+  @Override
+  public String toString() {
+    return getType() + " - " + getNumber() + ": Expires " + 
+                    DateConstants.serializeDate(getExpiry());
+  }
+  
+  
 }

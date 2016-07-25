@@ -54,4 +54,8 @@ public class DateConstants {
     cal.setTime(date);
     return cal;
   }
+  
+  public static String serializeDate(Date date) {
+    return sdf.format(date);
+  }
 }

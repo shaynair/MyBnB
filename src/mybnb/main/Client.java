@@ -4,13 +4,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mybnb.data.SQLEnumTypes;
 import mybnb.data.SQLManager;
 import mybnb.gui.LoginFrame;
+import mybnb.gui.ReportsFrame;
+import mybnb.gui.SearchFrame;
 import mybnb.struct.Address;
 import mybnb.struct.Availability;
 import mybnb.struct.BasicUser;
@@ -25,8 +30,8 @@ import mybnb.struct.User;
  * The main instance that holds the data for this application.
  */
 public class Client {
+  
   // Logger for this class
-
   private static final Logger LOG = Logger.getLogger(Client.class.getName());
   // Database connection
   private SQLManager sql = new SQLManager();
@@ -35,12 +40,30 @@ public class Client {
   // Current user
   private User user = null;
   /// GUI
-  private LoginFrame frame = new LoginFrame();
+  private LoginFrame login = new LoginFrame();
+  private ReportsFrame reports = new ReportsFrame();
+  private SearchFrame search = new SearchFrame();
   // Singleton
   private static Client c = new Client();
 
   // Hide constructor
   private Client() {
+  }
+
+  public LoginFrame getLogin() {
+    return login;
+  }
+
+  public User getCurrentUser() {
+    return user;
+  }
+
+  public ReportsFrame getReports() {
+    return reports;
+  }
+
+  public SearchFrame getSearch() {
+    return search;
   }
 
   /**
@@ -52,14 +75,6 @@ public class Client {
     sql.get();
     et.initialize();
     setCurrentUser(null);
-  }
-  
-  /**
-   * Gets frame.
-   * @return frame
-   */
-  public LoginFrame getFrame() {
-    return frame;
   }
 
   /**
@@ -106,7 +121,7 @@ public class Client {
   public void setCurrentUser(User u) {
     this.user = u;
     if (u != null) {
-      frame.setVisible(false);
+      login.setVisible(false);
     }
   }
 
@@ -195,7 +210,16 @@ public class Client {
         }
       }
     }
-
+    try (PreparedStatement ps = con.prepareStatement("SELECT * FROM "
+            + "listing_information WHERE hostID = ? AND is_available = TRUE "
+            + "ORDER BY created_on DESC")) {
+      ps.setInt(1, id);
+      try (ResultSet rse = ps.executeQuery()) {
+        while (rse.next()) {
+          ret.getListings().add(toListing(con, rse, ret));
+        }
+      }
+    }
     return ret;
   }
 
@@ -220,7 +244,7 @@ public class Client {
             rs.getString("description"), rs.getByte("num_bathrooms"),
             rs.getByte("num_beds"), rs.getByte("num_bedrooms"),
             rs.getByte("max_guests"), rs.getBoolean("is_available"),
-            rs.getDouble("average_listing_rating"));
+            rs.getDouble("average_listing_rating"), rs.getDouble("average_price"));
 
     int id = ret.getId();
     try (PreparedStatement ps = con.prepareStatement("SELECT amenity FROM amenities "
@@ -379,5 +403,172 @@ public class Client {
       LOG.log(Level.SEVERE, "Couldn't get", ex);
     }
     return ret;
+  }
+  
+  /**
+   * Gets a listing
+   * @param id
+   * @return the listing in the database
+   */
+  public Listing getListing(int id) {
+    Listing ret = null;
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM listing_information "
+              + "WHERE listingID = ? AND is_available = TRUE")) {
+        ps.setInt(1, id);
+        try (ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            ret = toListing(con, rs, null);
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return ret;
+  }
+  
+  public CreditCard getCard(long id) {
+    CreditCard ret = null;
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM renter_payments "
+              + "WHERE card_number = ?")) {
+        ps.setLong(1, id);
+        try (ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            ret = toCard(rs);
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return ret;
+  }
+  
+  /**
+   * Gets an address.
+   * @param postalCode
+   * @return the address in the database
+   */
+  public List<Address> findAddressByCode(String postalCode) {
+    List<Address> ret = new ArrayList<>();
+    if (postalCode.length() < 3) {
+      return ret;
+    }
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM address "
+              + "WHERE postal_code LIKE ?")) {
+        ps.setString(1, postalCode.substring(0, 3) + "%");
+        try (ResultSet rs = ps.executeQuery()) {
+          while (rs.next()) {
+            ret.add(toAddress(rs));
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return ret;
+  }
+  
+  /**
+   * Gets an address.
+   * @param address
+   * @return the address in the database
+   */
+  public List<Address> findAddressByStreet(String address) {
+    List<Address> search = new ArrayList<>();
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM address "
+              + "WHERE street_address = ?")) {
+        ps.setString(1, address);
+        try (ResultSet rs = ps.executeQuery()) {
+          while (rs.next()) {
+            search.add(toAddress(rs));
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return search;
+  }
+  
+  public List<Address> findAddressByVicinity(double lat, double lon, double vicinity) {
+    List<Address> search = new ArrayList<>();
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM address")) {
+        try (ResultSet rs = ps.executeQuery()) {
+          while (rs.next()) {
+            Address a = toAddress(rs);
+            if (a.calcDistance(lat, lon) <= vicinity) {
+              search.add(a);
+            }
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return search;
+  }
+  
+  public List<Listing> searchListings(List<Address> search) {
+    List<Listing> ret = new ArrayList<>();
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM "
+              + "listing_information WHERE latitude = ? AND longitude = ?")) {
+        for (Address s : search) {
+          ps.setDouble(1, s.getLatitude());
+          ps.setDouble(2, s.getLongitude());
+          try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+              ret.add(toListing(con, rs, null));
+            }
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return ret;
+  }
+  
+  public void filterListings(List<Listing> input, Date begin,
+          Date end, boolean descPrice, Set<String> amenities, 
+          double priceLow, double priceHigh, int beds, int bedrooms,
+          int bathrooms, int guests) {
+    
+    input.removeIf(listing -> {
+      return listing.getAveragePrice() < priceLow ||
+              listing.getAveragePrice() > priceHigh ||
+              (begin != null && end != null && 
+                  listing.getAvailability(begin, end) == null)
+              || !listing.hasAllAmenities(amenities)
+              || (beds > 0 && listing.getBeds() < beds)
+              || (bedrooms > 0 && listing.getBedrooms() < bedrooms)
+              || (bathrooms > 0 && listing.getBathrooms() < bathrooms)
+              || (guests > 0 && listing.getGuests() < guests);
+    });
+    
+    input.sort((a, b) -> ((descPrice ? -1 : 1) * 
+            Double.compare(a.getAveragePrice(), b.getAveragePrice())));
+  }
+  
+  public double suggestPrice(Listing l) {
+    
   }
 }

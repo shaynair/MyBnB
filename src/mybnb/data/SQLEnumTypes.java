@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,7 +23,7 @@ public class SQLEnumTypes {
   // Logger for this class
   private static final Logger LOG = Logger.getLogger(SQLManager.class.getName());
   // stores types
-  private Map<String, Set<String>> types = new HashMap<>();
+  private final Map<String, List<String>> types = new HashMap<>();
 
   /**
    * Initializes enum types.
@@ -32,8 +32,9 @@ public class SQLEnumTypes {
    */
   public void initialize() throws SQLException {
     Connection con = Client.getConnector().get();
+    
     for (Entry<String, Collection<String>> enumTable
-            : SQLConstants.enumTables.entrySet()) {
+            : SQLConstants.ENUM_TABLES.entrySet()) {
 
       try (PreparedStatement ps = con.prepareStatement(
               "SHOW COLUMNS FROM " + enumTable.getKey() + " LIKE ?")) {
@@ -57,7 +58,7 @@ public class SQLEnumTypes {
             }
             // Filter out the enum( )
             enumType = enumType.substring(5, enumType.length() - 1);
-            Set<String> list = new HashSet<>();
+            List<String> list = new ArrayList<>();
             for (String add : enumType.split(",")) {
               // Filter out the ''
               list.add(add.substring(1, add.length() - 1));
@@ -75,7 +76,7 @@ public class SQLEnumTypes {
    * @param t the enum name
    * @return the enum list
    */
-  public Set<String> getEnum(String t) {
+  public List<String> getEnum(String t) {
     return types.get(t);
   }
 }

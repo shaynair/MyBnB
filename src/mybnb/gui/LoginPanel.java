@@ -127,7 +127,6 @@ public class LoginPanel extends javax.swing.JPanel {
     });
 
     error.setForeground(new java.awt.Color(255, 0, 0));
-    error.setText("a");
 
     loginError.setForeground(new java.awt.Color(255, 0, 0));
 

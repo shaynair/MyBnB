@@ -5,9 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
+import mybnb.data.DateConstants;
 import mybnb.data.SQLConstants;
 
 /**
@@ -245,4 +246,37 @@ public class Availability implements Updatable {
       b.update(con);
     }
   }
+  
+  public boolean isNotBooked() {
+    Calendar st = DateConstants.toCalendar(start);
+    for (Booking b : bookings) {
+      Calendar book = DateConstants.toCalendar(b.getStarts());
+      if (book.get(Calendar.DAY_OF_YEAR) > st.get(Calendar.DAY_OF_YEAR)) {
+        return true;
+      }
+      st = DateConstants.toCalendar(b.getEnds());
+    }
+    Calendar book = DateConstants.toCalendar(end);
+    if (book.get(Calendar.DAY_OF_YEAR) > st.get(Calendar.DAY_OF_YEAR)) {
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public String toString() {
+    String s = type + ": ";
+    if (!available) {
+      s += "NOT ";
+    }
+    s += "AVAILABLE on ";
+    s += DateConstants.serializeDate(start);
+    s += " to ";
+    s += DateConstants.serializeDate(end);
+    s += " for $" + Math.round(price * 100.0) / 100.0 + " per day";
+    s += " for up to " + guests + " guests";
+    return s;
+  }
+  
+  
 }

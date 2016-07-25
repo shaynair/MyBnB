@@ -18,7 +18,7 @@ public class User extends BasicUser implements Deletable {
   private final List<Comment> comments = new ArrayList<>();
   private final List<Rating> ratings = new ArrayList<>();
   private final List<Booking> bookings = new ArrayList<>();
-  private final Set<CreditCard> cards = new HashSet<>();
+  private final List<CreditCard> cards = new ArrayList<>();
   private final List<Listing> listings = new ArrayList<>();
 
   /**
@@ -56,7 +56,7 @@ public class User extends BasicUser implements Deletable {
    *
    * @return the value of cards
    */
-  public Set<CreditCard> getCards() {
+  public List<CreditCard> getCards() {
     return cards;
   }
 
@@ -181,5 +181,14 @@ public class User extends BasicUser implements Deletable {
       ps.setInt(1, sin);
       ps.executeUpdate();
     }
+  }
+  
+  @Override
+  public double getAverageRating() {
+    if (ratings.isEmpty()) {
+      return avgRating;
+    }
+    return ratings.stream().mapToDouble(a -> a.getContent())
+            .average().getAsDouble();
   }
 }

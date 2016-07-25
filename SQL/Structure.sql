@@ -13,7 +13,7 @@ CREATE TABLE address (
   postal_code VARCHAR(7) NOT NULL,
   
   PRIMARY KEY (latitude, longitude), 
-  UNIQUE (country, province, city, street_address, postal_code),
+  UNIQUE (country, province, city, street_address),
   
   INDEX (postal_code),
   INDEX (street_address),
@@ -219,25 +219,70 @@ CREATE OR REPLACE VIEW user_information AS
 -- Note: Make sure to use 'WHERE is_available = TRUE'
 CREATE OR REPLACE VIEW listing_information AS
 	(SELECT l.listingID, l.title, l.description, l.max_guests, l.is_available,
-			l.created_on, l.hostID, l.list_type, AVG(r.rating) AS average_listing_rating,
-			l.unit_number, a.*
+			l.created_on, l.hostID, l.list_type, l.num_beds, l.num_bedrooms,
+			l.num_bathrooms, AVG(r.rating) AS average_listing_rating,
+			l.unit_number, a.*, AVG(av.daily_price) AS average_price,
+			COUNT(am.amenity) AS num_amenities
 			FROM listings l
 			LEFT JOIN address a USING (latitude, longitude)
 			LEFT JOIN listing_ratings r USING (listingID)
+			LEFT JOIN availability av USING (listingID)
+			LEFT JOIN amenities am USING (listingID)
 			GROUP BY l.listingID
 	);
 	
+CREATE OR REPLACE VIEW previously_booked AS
+	(SELECT l.*
+		FROM listing_information l
+		WHERE EXISTS(
+			SELECT b.renterID FROM bookings b 
+			LEFT JOIN availability a USING (availabilityID)
+			WHERE a.listingID = l.listingID
+				AND b.status = 'Available'
+		)
+	);
+	
+CREATE OR REPLACE VIEW price_per_amenity_in_location AS
+	(SELECT a.amenity, l.country, l.province, l.city,
+			AVG(l.average_price) AS average_price
+		FROM amenities a
+		INNER JOIN previously_booked l USING (listingID)
+		GROUP BY a.amenity, l.country, l.province, l.city
+	);
+	
+CREATE OR REPLACE VIEW price_per_essential_in_location AS
+	(SELECT l.country, l.province, l.city,
+			AVG(l.average_price) AS average_price,
+			AVG(l.num_beds) AS average_beds,
+			AVG(l.num_bedrooms) AS average_bedrooms,
+			AVG(l.num_bathrooms) AS average_bathrooms,
+			AVG(l.num_amenities) AS average_amenities,
+			AVG(l.average_price / l.num_beds) AS bed_price,
+			AVG(l.average_price / l.num_bedrooms) AS bedroom_price,
+			AVG(l.average_price / l.num_bathrooms) AS bathroom_price,
+			AVG(l.average_price / l.num_amenities) AS amenity_price
+		FROM previously_booked l
+		GROUP BY l.country, l.province, l.city
+	);
 
+-- NOTE: In Java, you must figure out if the availability is not booked.
 CREATE OR REPLACE VIEW unbooked_availabilities AS
-	(SELECT l.*, a.starts_on, a.ends_on, a.rent_type, 
-			a.daily_price, a.guests
+	(SELECT l.*, a.starts_on, a.ends_on, a.rent_type,
+			a.daily_price, a.guests, a.availabilityID
 		FROM availability a
 		LEFT JOIN listing_information l USING (listingID)
+		WHERE l.is_available = TRUE AND a.is_available = TRUE
+	);
+	
+-- NOTE: In Java, you must figure out if the availability is not booked.
+CREATE OR REPLACE VIEW available_listings AS
+	(SELECT l.*
+		FROM listing_information l
 		WHERE l.is_available = TRUE
-			AND NOT EXISTS(
-				SELECT b.renterID FROM bookings b 
-				WHERE b.availabilityID = a.availabilityID
-					AND b.status = 'Available'
+			AND EXISTS(
+				SELECT a.availabilityID FROM availability a 
+				WHERE a.is_available = TRUE
+					AND l.listingID = a.listingID
 			)
 	);
 	
@@ -270,20 +315,20 @@ CREATE OR REPLACE VIEW listings_per_country AS
 
 -- Get the total number of listings per country and city
 CREATE OR REPLACE VIEW listings_per_city AS
-	(SELECT a.country, a.city, COUNT(l.listingID) AS num_listings
+	(SELECT a.country, a.province, a.city, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
 		WHERE l.is_available = TRUE
-		GROUP BY a.country, a.city
+		GROUP BY a.country, a.province, a.city
 	);
 
 -- Get the total number of listings per country and city and postal code
 CREATE OR REPLACE VIEW listings_per_postal_code AS
-	(SELECT a.country, a.city, a.postal_code, COUNT(l.listingID) AS num_listings
+	(SELECT a.country, a.province, a.city, a.postal_code, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
 		WHERE l.is_available = TRUE
-		GROUP BY a.country, a.city, a.postal_code
+		GROUP BY a.country, a.province, a.city, a.postal_code
 	);
 
 -- Get the total number of listings per host in a country
@@ -298,20 +343,21 @@ CREATE OR REPLACE VIEW listings_per_host_in_country AS
 		
 -- Get the total number of listings per host in a city
 CREATE OR REPLACE VIEW listings_per_host_in_city AS
-	(SELECT u.sin_id AS hostID, a.country, a.city, COUNT(l.listingID) AS num_listings
+	(SELECT u.sin_id AS hostID, a.country, a.province, a.city, COUNT(l.listingID) AS num_listings
 		FROM users u
 		LEFT JOIN listings l ON l.hostID = u.sin_id
 		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
 		WHERE l.is_available = TRUE
-		GROUP BY u.sin_id, a.country, a.city
+		GROUP BY u.sin_id, a.country, a.province, a.city
 	);
 		
 -- Get the percentage of a host's listings in a country and city
 CREATE OR REPLACE VIEW host_market_share AS
-	(SELECT h.hostID, h.country, h.city, 
+	(SELECT h.hostID, h.country, h.province, h.city, 
 			h.num_listings / c.num_listings * 100 AS market_share
 		FROM listings_per_host_in_city h
-		LEFT JOIN listings_per_city c ON c.city = h.city AND c.country = h.country
+		LEFT JOIN listings_per_city c ON c.city = h.city 
+			AND c.province = h.province AND c.country = h.country
 	);
 
 -- Get the total number of cancellations per host within a year
@@ -333,7 +379,7 @@ CREATE OR REPLACE VIEW cancellations_per_renter AS
 	);
 		
 -- Get the total number of cancellations per user within a year
-CREATE OR REPLACE VIEW cancellations_per_renter AS
+CREATE OR REPLACE VIEW cancellations_per_user AS
 	(SELECT c.renterID, COUNT(*) AS num_cancellations
 		FROM booking_information c
 		WHERE c.booking_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
