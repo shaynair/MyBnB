@@ -693,6 +693,9 @@ public class Main {
 
                   if (a.intersects(start, end)) {
                     outln("This intersects with another booking.");
+                  } else if (start.getTime() < a.getStart().getTime()
+                          || end.getTime() > a.getEnd().getTime()) {
+                    outln("This is out of bounds.");
                   } else {
                     break;
                   }

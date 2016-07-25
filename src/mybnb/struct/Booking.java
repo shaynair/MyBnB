@@ -38,6 +38,7 @@ public class Booking implements Updatable {
   public Booking(int id, Availability availability, BasicUser renter, Date starts, Date ends, 
           String status, byte guests, CreditCard card, double totalPrice) {
     this.id = id;
+    this.availability = availability;
     this.renter = renter;
     this.starts = starts;
     this.ends = ends;

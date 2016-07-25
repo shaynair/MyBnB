@@ -531,13 +531,15 @@ public class Client {
     return search;
   }
   
-  public List<Listing> searchListings(List<Address> search) {
+  public List<Listing> searchListings(List<Address> search, int host) {
     List<Listing> ret = new ArrayList<>();
     try {
       Connection con = sql.get();
 
       try (PreparedStatement ps = con.prepareStatement("SELECT * FROM "
-              + "listing_information WHERE latitude = ? AND longitude = ?")) {
+              + "listing_information WHERE latitude = ? AND longitude = ?"
+              + " AND hostID != ?")) {
+        ps.setInt(3,  host);
         for (Address s : search) {
           ps.setDouble(1, s.getLatitude());
           ps.setDouble(2, s.getLongitude());
