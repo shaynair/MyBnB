@@ -75,7 +75,7 @@ CREATE TABLE listings (
   num_beds SMALLINT UNSIGNED NOT NULL,
   num_bathrooms SMALLINT UNSIGNED NOT NULL,
   max_guests SMALLINT UNSIGNED NOT NULL,
-  is_available BOOLEAN NOT NULL,
+  is_available BOOLEAN NOT NULL DEFAULT TRUE,
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID),
@@ -114,7 +114,7 @@ CREATE TABLE availability (
   rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
   daily_price REAL NOT NULL,
   guests SMALLINT UNSIGNED NOT NULL,
-  is_available BOOLEAN NOT NULL,
+  is_available BOOLEAN NOT NULL DEFAULT TRUE,
   
   PRIMARY KEY (availabilityID),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
