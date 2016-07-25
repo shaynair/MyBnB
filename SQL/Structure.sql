@@ -39,7 +39,7 @@ CREATE TABLE users (
   
   PRIMARY KEY (sin_id),
   UNIQUE (email),
-  FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
+  FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude) ON DELETE CASCADE,
 
   -- Check if above 18
   CHECK (DATEDIFF(birthdate, CURDATE()) >= 18 * 365)
@@ -80,7 +80,7 @@ CREATE TABLE listings (
   
   PRIMARY KEY (listingID),
   FOREIGN KEY (hostID) REFERENCES users(sin_id) ON DELETE CASCADE,
-  FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude),
+  FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude) ON DELETE CASCADE,
   
   INDEX (is_available), 
   INDEX (list_type, max_guests),
@@ -141,7 +141,7 @@ CREATE TABLE bookings (
   updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (bookingID),
-  FOREIGN KEY (card_number) REFERENCES renter_payments(card_number),
+  FOREIGN KEY (card_number) REFERENCES renter_payments(card_number) ON DELETE CASCADE,
   FOREIGN KEY (availabilityID) REFERENCES availability(availabilityID) ON DELETE CASCADE,
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   
