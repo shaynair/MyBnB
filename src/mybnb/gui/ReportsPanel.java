@@ -340,7 +340,7 @@ public class ReportsPanel extends javax.swing.JPanel {
       }
       String s = l.getTitle() + " : [";
       for (Entry<String, Integer> d : c.getValue()) {
-        s += d.getKey() + " = " + d.getValue() + " times, ";
+        s += d.getKey() + " (" + d.getValue() + "), ";
       }
       lm.addElement(s.substring(0, s.length() - (c.getValue().size() > 0 ? 2 : 0)) + "]");
     }

@@ -141,16 +141,16 @@ public class Client {
    * @return the user
    */
   public User toUser(int id, String email, boolean login) {
+    User ret = null;
     try {
       Connection con = sql.get();
-      User ret = null;
+      
       try (PreparedStatement ps = con.prepareStatement("SELECT * FROM user_information "
-              + "WHERE ? = ?")) {
-        ps.setString(1, id > 0 ? "sin_id" : "email");
+              + "WHERE " + (id > 0 ? "sin_id" : "email") + " = ?")) {
         if (id > 0) {
-          ps.setInt(2, id);
+          ps.setInt(1, id);
         } else {
-          ps.setString(2, email);
+          ps.setString(1, email);
         }
         try (ResultSet rs = ps.executeQuery()) {
           if (rs.next()) {
@@ -173,13 +173,13 @@ public class Client {
     } catch (SQLException ex) {
       LOG.log(Level.SEVERE, "Couldn't login", ex);
     }
-    return null;
+    return ret;
   }
 
   private User toUser(Connection con, ResultSet rs) throws SQLException {
     User ret = new User(toBasicUser(rs), toAddress(rs));
     int id = ret.getSIN();
-
+   
     try (PreparedStatement ps = con.prepareStatement("SELECT * FROM renter_payments "
             + "WHERE renterID = ?")) {
       ps.setInt(1, id);
@@ -287,7 +287,7 @@ public class Client {
       try (ResultSet rse = ps.executeQuery()) {
         while (rse.next()) {
           Availability a = toAvailability(con, rse, ret, u);
-          try (PreparedStatement pse = con.prepareStatement("SELECT * FROM bookings "
+          try (PreparedStatement pse = con.prepareStatement("SELECT * FROM booking_information "
                   + "WHERE listingID = ? AND availabilityID = ? AND status = 'Available'")) {
             pse.setInt(1, id);
             pse.setInt(2, a.getId());

@@ -262,9 +262,9 @@ public class SearchPanel extends javax.swing.JPanel {
           .addComponent(jLabel1)
           .addComponent(latitude, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
           .addComponent(jLabel2)
-          .addComponent(longitude, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
           .addComponent(jLabel9)
-          .addComponent(vicinity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addComponent(vicinity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(longitude, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(postalButton)
@@ -330,13 +330,13 @@ public class SearchPanel extends javax.swing.JPanel {
   private void startSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startSearchActionPerformed
     populate();
     List<Address> addresses = null;
-    if (postalButton.isSelected()) {
+    if (addressButton.isSelected()) {
       if (search.getText().isEmpty()) {
         error.setText("Please enter fields.");
         return;
       }
       addresses = Client.get().findAddressByStreet(search.getText());
-    } else if (addressButton.isSelected()) {
+    } else if (postalButton.isSelected()) {
       if (search.getText().isEmpty()) {
         error.setText("Please enter fields.");
         return;

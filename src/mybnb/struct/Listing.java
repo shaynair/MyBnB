@@ -396,6 +396,7 @@ public class Listing implements Updatable {
     }
     return false;
   }
+  
   public boolean hasAllAmenities(Set<String> amen) {
     for (String s : amen) {
       if (!amenities.contains(s)) {
@@ -403,6 +404,35 @@ public class Listing implements Updatable {
       }
     }
     return true;
+  }
+  
+  public boolean isEligibleRenter(int renter) {
+    for (Availability av : availabilities) {
+      for (Booking b : av.getBookings()) {
+        if (b.getRenter().getSIN() == renter) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  public boolean isEligibleCommenter(int renter) {
+    for (Comment c : comments) {
+      if (c.getOrigin() == renter) {
+        return false;
+      }
+    }
+    return false;
+  }
+  
+  public boolean isEligibleRater(int renter) {
+    for (Rating c : ratings) {
+      if (c.getOrigin() == renter) {
+        return false;
+      }
+    }
+    return false;
   }
   
   @Override

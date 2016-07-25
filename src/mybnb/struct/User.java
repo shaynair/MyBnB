@@ -147,7 +147,7 @@ public class User extends BasicUser implements Deletable {
       book.insert(con);
     }
   }
-  
+
   @Override
   public void update(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("UPDATE users"
@@ -171,8 +171,7 @@ public class User extends BasicUser implements Deletable {
       book.update(con);
     }
   }
-  
-    
+
   @Override
   public void delete(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("DELETE FROM users"
@@ -182,7 +181,7 @@ public class User extends BasicUser implements Deletable {
       ps.executeUpdate();
     }
   }
-  
+
   @Override
   public double getAverageRating() {
     if (ratings.isEmpty()) {
@@ -190,5 +189,32 @@ public class User extends BasicUser implements Deletable {
     }
     return ratings.stream().mapToDouble(a -> a.getContent())
             .average().getAsDouble();
+  }
+
+  public boolean isEligibleRenter(int renter) {
+    for (Listing l : listings) {
+      if (l.isEligibleRenter(renter)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean isEligibleCommenter(int renter) {
+    for (Comment c : comments) {
+      if (c.getOrigin() == renter) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  public boolean isEligibleRater(int renter) {
+    for (Rating c : ratings) {
+      if (c.getOrigin() == renter) {
+        return false;
+      }
+    }
+    return false;
   }
 }

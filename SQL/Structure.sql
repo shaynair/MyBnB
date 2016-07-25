@@ -102,7 +102,9 @@ CREATE TABLE amenities (
 		'Carbon Monoxide Detector', 'First Aid Kit', 'Smoke Detector') NOT NULL,
   
   PRIMARY KEY (listingID, amenity),
-  FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
+  FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
+  
+  INDEX (amenity)
 );
 
 DROP TABLE IF EXISTS availability CASCADE;
@@ -291,7 +293,7 @@ CREATE OR REPLACE VIEW available_listings AS
 -- For getting bookings by city or by renter: SELECT the time period and use GROUP BY.
 -- Make sure to use status = 'Available'
 CREATE OR REPLACE VIEW booking_information AS
-	(SELECT a.availabilityID, b.starts, b.ends, b.status, a.rent_type, b.num_guests, 
+	(SELECT a.availabilityID, b.starts, b.ends, b.status, a.rent_type, b.num_guests, a.daily_price,
 			a.daily_price * (DATEDIFF(b.ends, b.starts) + 1) AS total_price, a.guests, 
 			b.renterID, b.bookingID, b.updated_on AS booking_time, c.card_number, c.card_type, c.expiry_date, 
 			l.*, u.sin_id, u.first_name, u.last_name, u.email, u.birth_date,

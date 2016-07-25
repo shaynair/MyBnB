@@ -290,4 +290,14 @@ public class Availability implements Deletable {
       ps.executeUpdate();
     }
   }
+  
+  public boolean intersects(Date begin, Date end) {
+    for (Booking av : bookings) {
+      if ((av.getStarts().before(end) || av.getStarts().equals(end))
+        && (av.getEnds().after(begin) || av.getEnds().equals(begin))) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

@@ -174,7 +174,7 @@ public class Address implements Insertable {
     final double R = 6371; // Radius of the earth in km
     double dLat = Math.sin(Math.toRadians(lat2 - latitude) / 2); 
     double dLon = Math.sin(Math.toRadians(lon2 - longitude) / 2); 
-    double a = dLat * dLat + dLon * dLon +
+    double a = dLat * dLat + dLon * dLon *
       Math.cos(Math.toRadians(latitude)) * Math.cos(Math.toRadians(lat2)); 
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }

@@ -231,15 +231,17 @@ public class Reports {
 
       try (PreparedStatement ps = con.prepareStatement("SELECT b.*, COUNT(b.bookingID) AS c "
               + " FROM booking_information b WHERE b.starts >= ? AND b.ends <= ?"
-              + " AND b.status = 'Available' AND c >= 2"
+              + " AND b.status = 'Available'"
               + " GROUP BY b.renterID, b.country, b.province, b.city ORDER BY c DESC")) {
         ps.setDate(1, new java.sql.Date(begin.getTime()));
         ps.setDate(2, new java.sql.Date(end.getTime()));
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            ret.add(new SimpleEntry<>(new SimpleEntry<>(rs.getInt("renterID"),
-              rs.getString("country") + ", " + rs.getString("province") + ", " 
-                    + rs.getString("city")),rs.getInt("c")));
+            if (rs.getInt("c") >= 2) {
+              ret.add(new SimpleEntry<>(new SimpleEntry<>(rs.getInt("renterID"),
+                rs.getString("country") + ", " + rs.getString("province") + ", " 
+                      + rs.getString("city")), rs.getInt("c")));
+            }
           }
         }
       }
@@ -314,7 +316,7 @@ public class Reports {
             int listing = rs.getInt("listingID");
             String comment = rs.getString("content").toLowerCase()
                     .replaceAll("[^a-z ]", "");
-           
+            
             Map<String, Integer> ret = arr.get(listing);
             if (ret == null) {
               ret = new HashMap<>();
