@@ -39,6 +39,7 @@ public class Client {
   private SQLEnumTypes et = new SQLEnumTypes();
   // Current user
   private User user = null;
+  private Listing list = null;
   /// GUI
   private LoginFrame login = new LoginFrame();
   private ReportsFrame reports = new ReportsFrame();
@@ -58,6 +59,10 @@ public class Client {
     return user;
   }
 
+  public Listing getCurrentListing() {
+    return list;
+  }
+  
   public ReportsFrame getReports() {
     return reports;
   }
@@ -105,15 +110,6 @@ public class Client {
   }
 
   /**
-   * Gets current user.
-   *
-   * @return current user
-   */
-  public static User currentUser() {
-    return c.user;
-  }
-
-  /**
    * Sets current user.
    *
    * @param u
@@ -125,6 +121,17 @@ public class Client {
     }
   }
 
+  /**
+   * Sets current listing.
+   *
+   * @param l
+   */
+  public void setCurrentListing(Listing l) {
+    this.list = l;
+    if (l != null) {
+      search.setVisible(false);
+    }
+  }
   /**
    * Creates and retrieves a user.
    *
@@ -569,6 +576,43 @@ public class Client {
   }
   
   public double suggestPrice(Listing l) {
-    
+    List<Double> ret = new ArrayList<>();
+    try {
+      Connection con = sql.get();
+
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM "
+              + "price_per_essential_in_location WHERE country = ? AND"
+              + " province = ? AND city = ?")) {
+        ps.setString(1, l.getAddress().getCountry());
+        ps.setString(2, l.getAddress().getProvince());
+        ps.setString(3, l.getAddress().getCity());
+        try (ResultSet rs = ps.executeQuery()) {
+          if (rs.next()) {
+            ret.add(rs.getDouble("bed_price") * l.getBeds());
+            ret.add(rs.getDouble("bedroom_price") * l.getBedrooms());
+            ret.add(rs.getDouble("bathroom_price") * l.getBathrooms());
+            ret.add(rs.getDouble("amenity_price") * l.getAmenities().size());
+            ret.add(rs.getDouble("guest_price") * l.getGuests());
+          }
+        }
+      }
+      try (PreparedStatement ps = con.prepareStatement("SELECT * FROM "
+              + "price_per_amenity_in_location WHERE country = ? AND"
+              + " province = ? AND city = ?")) {
+        ps.setString(1, l.getAddress().getCountry());
+        ps.setString(2, l.getAddress().getProvince());
+        ps.setString(3, l.getAddress().getCity());
+        try (ResultSet rs = ps.executeQuery()) {
+          while (rs.next()) {
+            if(l.getAmenities().contains(rs.getString("amenity"))) {
+              ret.add(rs.getDouble("average_price"));
+            }
+          }
+        }
+      }
+    } catch (SQLException ex) {
+      LOG.log(Level.SEVERE, "Couldn't get", ex);
+    }
+    return ret.isEmpty() ? 0 : ret.stream().mapToDouble(a -> a).average().getAsDouble();
   }
 }

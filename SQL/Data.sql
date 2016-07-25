@@ -553,10 +553,12 @@ SET character_set_client = utf8;
  1 AS `average_bedrooms`,
  1 AS `average_bathrooms`,
  1 AS `average_amenities`,
+ 1 AS `average_guests`,
  1 AS `bed_price`,
  1 AS `bedroom_price`,
  1 AS `bathroom_price`,
- 1 AS `amenity_price`*/;
+ 1 AS `amenity_price`,
+ 1 AS `guest_price`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -1001,7 +1003,7 @@ UNLOCK TABLES;
 /*!50001 SET collation_connection      = utf8_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `price_per_essential_in_location` AS (select `l`.`country` AS `country`,`l`.`province` AS `province`,`l`.`city` AS `city`,avg(`l`.`average_price`) AS `average_price`,avg(`l`.`num_beds`) AS `average_beds`,avg(`l`.`num_bedrooms`) AS `average_bedrooms`,avg(`l`.`num_bathrooms`) AS `average_bathrooms`,avg(`l`.`num_amenities`) AS `average_amenities`,avg((`l`.`average_price` / `l`.`num_beds`)) AS `bed_price`,avg((`l`.`average_price` / `l`.`num_bedrooms`)) AS `bedroom_price`,avg((`l`.`average_price` / `l`.`num_bathrooms`)) AS `bathroom_price`,avg((`l`.`average_price` / `l`.`num_amenities`)) AS `amenity_price` from `previously_booked` `l` group by `l`.`country`,`l`.`province`,`l`.`city`) */;
+/*!50001 VIEW `price_per_essential_in_location` AS (select `l`.`country` AS `country`,`l`.`province` AS `province`,`l`.`city` AS `city`,avg(`l`.`average_price`) AS `average_price`,avg(`l`.`num_beds`) AS `average_beds`,avg(`l`.`num_bedrooms`) AS `average_bedrooms`,avg(`l`.`num_bathrooms`) AS `average_bathrooms`,avg(`l`.`num_amenities`) AS `average_amenities`,avg(`l`.`max_guests`) AS `average_guests`,avg((`l`.`average_price` / `l`.`num_beds`)) AS `bed_price`,avg((`l`.`average_price` / `l`.`num_bedrooms`)) AS `bedroom_price`,avg((`l`.`average_price` / `l`.`num_bathrooms`)) AS `bathroom_price`,avg((`l`.`average_price` / `l`.`num_amenities`)) AS `amenity_price`,avg((`l`.`average_price` / `l`.`max_guests`)) AS `guest_price` from `previously_booked` `l` group by `l`.`country`,`l`.`province`,`l`.`city`) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -1051,4 +1053,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-07-25 17:30:03
+-- Dump completed on 2016-07-25 18:03:54

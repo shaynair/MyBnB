@@ -421,7 +421,11 @@ public class SearchPanel extends javax.swing.JPanel {
   }//GEN-LAST:event_dateEndActionPerformed
 
   private void resultsValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_resultsValueChanged
-    // TODO add your handling code here:
+    if (evt.getFirstIndex() != evt.getLastIndex() || listings.isEmpty()
+            || evt.getFirstIndex() < 0 || evt.getFirstIndex() >= listings.size()) {
+      return;
+    }
+    Client.get().setCurrentListing(listings.get(evt.getFirstIndex()));
   }//GEN-LAST:event_resultsValueChanged
 
   private void coordButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_coordButtonActionPerformed

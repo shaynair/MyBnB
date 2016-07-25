@@ -257,10 +257,12 @@ CREATE OR REPLACE VIEW price_per_essential_in_location AS
 			AVG(l.num_bedrooms) AS average_bedrooms,
 			AVG(l.num_bathrooms) AS average_bathrooms,
 			AVG(l.num_amenities) AS average_amenities,
+			AVG(l.max_guests) AS average_guests,
 			AVG(l.average_price / l.num_beds) AS bed_price,
 			AVG(l.average_price / l.num_bedrooms) AS bedroom_price,
 			AVG(l.average_price / l.num_bathrooms) AS bathroom_price,
-			AVG(l.average_price / l.num_amenities) AS amenity_price
+			AVG(l.average_price / l.num_amenities) AS amenity_price,
+			AVG(l.average_price / l.max_guests) AS guest_price
 		FROM previously_booked l
 		GROUP BY l.country, l.province, l.city
 	);

@@ -14,7 +14,7 @@ import mybnb.data.SQLConstants;
 /**
  * Represents an availability.
  */
-public class Availability implements Updatable {
+public class Availability implements Deletable {
   
   private int id;
   private Listing listing;
@@ -250,6 +250,9 @@ public class Availability implements Updatable {
   public boolean isNotBooked() {
     Calendar st = DateConstants.toCalendar(start);
     for (Booking b : bookings) {
+      if (!b.getStatus().equals("Available")) {
+        continue;
+      }
       Calendar book = DateConstants.toCalendar(b.getStarts());
       if (book.get(Calendar.DAY_OF_YEAR) > st.get(Calendar.DAY_OF_YEAR)) {
         return true;
@@ -278,5 +281,13 @@ public class Availability implements Updatable {
     return s;
   }
   
-  
+  @Override
+  public void delete(Connection con) throws SQLException {
+    try (PreparedStatement ps = con.prepareStatement("DELETE FROM availability"
+            + " WHERE availabilityID = ?")) {
+
+      ps.setInt(1, id);
+      ps.executeUpdate();
+    }
+  }
 }
