@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import mybnb.data.SQLEnumTypes;
 import mybnb.data.SQLManager;
-import mybnb.gui.MainFrame;
+import mybnb.gui.LoginFrame;
 import mybnb.struct.Address;
 import mybnb.struct.Availability;
 import mybnb.struct.BasicUser;
@@ -35,7 +35,7 @@ public class Client {
   // Current user
   private User user = null;
   /// GUI
-  private MainFrame frame = new MainFrame();
+  private LoginFrame frame = new LoginFrame();
   // Singleton
   private static Client c = new Client();
 
@@ -58,7 +58,7 @@ public class Client {
    * Gets frame.
    * @return frame
    */
-  public MainFrame getFrame() {
+  public LoginFrame getFrame() {
     return frame;
   }
 

@@ -42,7 +42,7 @@ CREATE TABLE users (
   FOREIGN KEY (latitude, longitude) REFERENCES address(latitude, longitude) ON DELETE CASCADE,
 
   -- Check if above 18
-  CHECK (DATEDIFF(birthdate, CURDATE()) >= 18 * 365)
+  CHECK (DATEDIFF(CURDATE(), birthdate) >= 18 * 365)
 );
 
 DROP TABLE IF EXISTS renter_payments CASCADE;
@@ -56,7 +56,7 @@ CREATE TABLE renter_payments (
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   
   -- Check if expiry date is valid
-  CHECK (DATEDIFF(expiry_date, CURDATE()) > 0)
+  CHECK (DATEDIFF(CURDATE(), expiry_date) > 0)
 );
 
 DROP TABLE IF EXISTS listings CASCADE;
@@ -208,7 +208,7 @@ CREATE TABLE listing_comments (
 
 CREATE OR REPLACE VIEW user_information AS
 	(SELECT u.sin_id, u.first_name, u.last_name, u.email, u.birth_date,
-			u.occupation, u.registered_on, DATEDIFF(u.login_on, NOW()) AS last_login,
+			u.occupation, u.registered_on, DATEDIFF(NOW(), u.login_on) AS last_login,
 			a.*, AVG(p.rating) AS average_user_rating
 			FROM users u
 			LEFT JOIN address a USING (latitude, longitude)
@@ -245,7 +245,7 @@ CREATE OR REPLACE VIEW unbooked_availabilities AS
 -- Make sure to use status = 'Available'
 CREATE OR REPLACE VIEW booking_information AS
 	(SELECT a.availabilityID, b.starts, b.ends, b.status, a.rent_type, b.num_guests, 
-			a.daily_price * (DATEDIFF(b.starts, b.ends) + 1) AS total_price, a.guests, 
+			a.daily_price * (DATEDIFF(b.ends, b.starts) + 1) AS total_price, a.guests, 
 			b.renterID, b.bookingID, b.updated_on AS booking_time, c.card_number, c.card_type, c.expiry_date, 
 			l.*, u.sin_id, u.first_name, u.last_name, u.email, u.birth_date,
 			u.occupation, u.average_user_rating, a.starts_on, a.ends_on 
@@ -273,7 +273,7 @@ CREATE OR REPLACE VIEW listings_per_city AS
 	(SELECT a.country, a.city, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
-		WHERE l.is_available = 'Yes'
+		WHERE l.is_available = TRUE
 		GROUP BY a.country, a.city
 	);
 
@@ -282,7 +282,7 @@ CREATE OR REPLACE VIEW listings_per_postal_code AS
 	(SELECT a.country, a.city, a.postal_code, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
-		WHERE l.is_available = 'Yes'
+		WHERE l.is_available = TRUE
 		GROUP BY a.country, a.city, a.postal_code
 	);
 

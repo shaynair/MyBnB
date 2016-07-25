@@ -2,8 +2,6 @@ TODO:
 - user manual, system limitations, possibility for improvement
 
 OPERATIONS: (SATISFY CONSTRAINTS such as final price for future book, can't change availability if booked)
-- Create profile
-- Delete user
 - Create new listing
 - Book a listing
 - Change availability

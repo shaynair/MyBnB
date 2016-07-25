@@ -6,7 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
-import mybnb.gui.MainFrame;
+import mybnb.gui.LoginFrame;
 
 /**
  * Main class for executing the program.
