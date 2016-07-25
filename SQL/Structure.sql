@@ -4,8 +4,8 @@ USE mybnb;
 
 DROP TABLE IF EXISTS address CASCADE;
 CREATE TABLE address (
-  latitude REAL NOT NULL,
-  longitude REAL NOT NULL,
+  latitude DECIMAL(10,5) NOT NULL,
+  longitude DECIMAL(10,5) NOT NULL,
   country VARCHAR(24) NOT NULL,
   province VARCHAR(24) NOT NULL, 
   city VARCHAR(24) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE address (
   postal_code VARCHAR(7) NOT NULL,
   
   PRIMARY KEY (latitude, longitude), 
-  UNIQUE (street_address, postal_code),
+  UNIQUE (country, province, city, street_address, postal_code),
   
   INDEX (postal_code),
   INDEX (street_address),
@@ -30,8 +30,8 @@ CREATE TABLE users (
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(50) NOT NULL,
   email VARCHAR(100) NOT NULL,
-  latitude REAL NOT NULL,
-  longitude REAL NOT NULL,
+  latitude DECIMAL(10,5) NOT NULL,
+  longitude DECIMAL(10,5) NOT NULL,
   birth_date DATE NOT NULL,
   occupation VARCHAR(50) NOT NULL,
   registered_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -52,7 +52,7 @@ CREATE TABLE renter_payments (
   card_type ENUM('Visa', 'MasterCard', 'American Express') NOT NULL,
   expiry_date DATE NOT NULL,
   
-  PRIMARY KEY (card_number, card_type),
+  PRIMARY KEY (card_number),
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   
   -- Check if expiry date is valid
@@ -66,8 +66,8 @@ CREATE TABLE listings (
   list_type ENUM('Apartment', 'House', 'Townhouse', 'Villa', 'Tent',
 				'Condominium', 'Bungalow', 'Cottage', 'Loft', 'Lighthouse',
 				'Dormitory', 'Castle', 'Boat', 'RV', 'Other') NOT NULL DEFAULT 'Other',
-  latitude REAL NOT NULL,
-  longitude REAL NOT NULL,
+  latitude DECIMAL(10,5) NOT NULL,
+  longitude DECIMAL(10,5) NOT NULL,
   unit_number MEDIUMINT DEFAULT NULL,
   title VARCHAR(64) NOT NULL,
   description TEXT NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE listings (
   num_beds SMALLINT UNSIGNED NOT NULL,
   num_bathrooms SMALLINT UNSIGNED NOT NULL,
   max_guests SMALLINT UNSIGNED NOT NULL,
-  is_available ENUM('Yes', 'No') NOT NULL DEFAULT 'Yes',
+  is_available BOOLEAN NOT NULL,
   created_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (listingID),
@@ -86,6 +86,7 @@ CREATE TABLE listings (
   INDEX (list_type, max_guests),
   INDEX (num_bedrooms, num_beds, num_bathrooms),
   
+  CHECK (is_available = TRUE OR is_available = FALSE),
   CHECK (max_guests > 0)
 );
 
@@ -112,8 +113,8 @@ CREATE TABLE availability (
   ends_on DATE NOT NULL,
   rent_type ENUM('Full Location', 'Private Room', 'Shared Room') NOT NULL,
   daily_price REAL NOT NULL,
-  num_guests SMALLINT UNSIGNED NOT NULL,
-  is_available ENUM('Yes', 'No') NOT NULL DEFAULT 'Yes',
+  guests SMALLINT UNSIGNED NOT NULL,
+  is_available BOOLEAN NOT NULL,
   
   PRIMARY KEY (availabilityID),
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE,
@@ -123,8 +124,8 @@ CREATE TABLE availability (
   INDEX (rent_type, daily_price),
   
   CHECK (price > 0),
-  CHECK (DATEDIFF(starts_on, ends_on) > 0),
-  CHECK (num_guests > 0)
+  CHECK (guests > 0),
+  CHECK (is_available = TRUE OR is_available = FALSE)
 );
 
 DROP TABLE IF EXISTS bookings CASCADE;
@@ -132,20 +133,19 @@ CREATE TABLE bookings (
   bookingID INTEGER NOT NULL AUTO_INCREMENT,
   availabilityID INTEGER NOT NULL,
   renterID INTEGER NOT NULL,
-  starts_on DATE NOT NULL,
-  ends_on DATE NOT NULL,
+  starts DATE NOT NULL,
+  ends DATE NOT NULL,
   status ENUM('Available', 'Canceled by Renter', 'Canceled by Host') NOT NULL DEFAULT 'Available',
   num_guests SMALLINT UNSIGNED NOT NULL,
   card_number BIGINT NOT NULL,
-  card_type ENUM('Visa', 'MasterCard', 'American Express') NOT NULL,
   updated_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   
   PRIMARY KEY (bookingID),
-  FOREIGN KEY (card_number, card_type) REFERENCES renter_payments(card_number, card_type),
+  FOREIGN KEY (card_number) REFERENCES renter_payments(card_number),
   FOREIGN KEY (availabilityID) REFERENCES availability(availabilityID) ON DELETE CASCADE,
   FOREIGN KEY (renterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   
-  INDEX (starts_on, ends_on),
+  INDEX (starts, ends),
   INDEX (status),
   
   CHECK (num_guests > 0)
@@ -205,51 +205,35 @@ CREATE TABLE listing_comments (
   FOREIGN KEY (commenterID) REFERENCES users(sin_id) ON DELETE CASCADE,
   FOREIGN KEY (listingID) REFERENCES listings(listingID) ON DELETE CASCADE
 );
-		
-CREATE OR REPLACE VIEW canceled_bookings AS
-	(SELECT a.listingID, b.starts_on, b.ends_on, a.rent_type, b.num_guests, b.status, 
-			a.daily_price * DATEDIFF(b.starts_on, b.ends_on) AS total_price, 
-			b.renterID, b.updated_on AS canceled_time, b.renterID AS cancelerID
-		FROM bookings b
-		LEFT JOIN availability a USING (availabilityID)
-		WHERE b.status = 'Canceled by Renter')
-	UNION
-	(SELECT a.listingID, b.starts_on, b.ends_on, a.rent_type, b.num_guests, b.status, 
-			a.daily_price * DATEDIFF(b.starts_on, b.ends_on) AS total_price, 
-			b.renterID, b.updated_on AS canceled_time, l.hostID AS cancelerID
-		FROM bookings b
-		LEFT JOIN availability a USING (availabilityID)
-		LEFT JOIN listings l USING (listingID)
-		WHERE b.status = 'Canceled by Host');
-
-		
--- Note: Make sure to use 'WHERE is_available = "Yes"'
-CREATE OR REPLACE VIEW listing_information AS
-	(SELECT l.listingID, l.title, l.description, l.max_guests, l.is_available,
-			l.created_on, l.hostID, l.list_type, AVG(r.rating) AS average_rating,
-			l.unit_number, a.country, a.province, a.city, a.street_address, a.postal_code
-			FROM listings l
-			LEFT JOIN address a USING (latitude, longitude)
-			LEFT JOIN listing_ratings r USING (listingID)
-	);
 
 CREATE OR REPLACE VIEW user_information AS
-	(SELECT u.sin_id, u.first_name, u.last_name, u.birth_date,
+	(SELECT u.sin_id, u.first_name, u.last_name, u.email, u.birth_date,
 			u.occupation, u.registered_on, DATEDIFF(u.login_on, NOW()) AS last_login,
-			a.country, a.province, a.city, a.street_address, a.postal_code,
-			AVG(p.rating) AS average_rating
+			a.*, AVG(p.rating) AS average_user_rating
 			FROM users u
 			LEFT JOIN address a USING (latitude, longitude)
 			LEFT JOIN profile_ratings p ON p.userID = u.sin_id
+			GROUP BY u.sin_id
+	);
+	
+-- Note: Make sure to use 'WHERE is_available = TRUE'
+CREATE OR REPLACE VIEW listing_information AS
+	(SELECT l.listingID, l.title, l.description, l.max_guests, l.is_available,
+			l.created_on, l.hostID, l.list_type, AVG(r.rating) AS average_listing_rating,
+			l.unit_number, a.*
+			FROM listings l
+			LEFT JOIN address a USING (latitude, longitude)
+			LEFT JOIN listing_ratings r USING (listingID)
+			GROUP BY l.listingID
 	);
 	
 
 CREATE OR REPLACE VIEW unbooked_availabilities AS
-	(SELECT a.listingID, a.starts_on, a.ends_on, a.rent_type, 
-			a.daily_price, a.num_guests
+	(SELECT l.*, a.starts_on, a.ends_on, a.rent_type, 
+			a.daily_price, a.guests
 		FROM availability a
 		LEFT JOIN listing_information l USING (listingID)
-		WHERE l.is_available = 'Yes'
+		WHERE l.is_available = TRUE
 			AND NOT EXISTS(
 				SELECT b.renterID FROM bookings b 
 				WHERE b.availabilityID = a.availabilityID
@@ -258,16 +242,19 @@ CREATE OR REPLACE VIEW unbooked_availabilities AS
 	);
 	
 -- For getting bookings by city or by renter: SELECT the time period and use GROUP BY.
-CREATE OR REPLACE VIEW available_bookings AS
-	(SELECT a.listingID, b.starts_on, b.ends_on, a.rent_type, b.num_guests, 
-			a.daily_price * DATEDIFF(b.starts_on, b.ends_on) AS total_price, 
-			b.renterID, b.updated_on AS booking_time,
-			l.country, l.province, l.city, l.street_address, l.postal_code
+-- Make sure to use status = 'Available'
+CREATE OR REPLACE VIEW booking_information AS
+	(SELECT a.availabilityID, b.starts, b.ends, b.status, a.rent_type, b.num_guests, 
+			a.daily_price * (DATEDIFF(b.starts, b.ends) + 1) AS total_price, a.guests, 
+			b.renterID, b.bookingID, b.updated_on AS booking_time, c.card_number, c.card_type, c.expiry_date, 
+			l.*, u.sin_id, u.first_name, u.last_name, u.email, u.birth_date,
+			u.occupation, u.average_user_rating, a.starts_on, a.ends_on 
 		FROM bookings b
 		LEFT JOIN availability a USING (availabilityID)
 		LEFT JOIN listing_information l USING (listingID)
-		WHERE b.status = 'Available' AND l.is_available = 'Yes' 
-				AND a.is_available = 'Yes'
+		LEFT JOIN renter_payments c USING (card_number)
+		LEFT JOIN user_information u ON b.renterID = u.sin_id
+		WHERE l.is_available = TRUE AND a.is_available = TRUE
 	);
 		
 -- Reports 
@@ -277,7 +264,7 @@ CREATE OR REPLACE VIEW listings_per_country AS
 	(SELECT a.country, COUNT(l.listingID) AS num_listings
 		FROM address a 
 		LEFT JOIN listings l USING (latitude, longitude)
-		WHERE l.is_available = 'Yes'
+		WHERE l.is_available = TRUE
 		GROUP BY a.country
 	);
 
@@ -305,7 +292,7 @@ CREATE OR REPLACE VIEW listings_per_host_in_country AS
 		FROM users u
 		LEFT JOIN listings l ON l.hostID = u.sin_id
 		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
-		WHERE l.is_available = 'Yes'
+		WHERE l.is_available = TRUE
 		GROUP BY u.sin_id, a.country
 	);
 		
@@ -315,7 +302,7 @@ CREATE OR REPLACE VIEW listings_per_host_in_city AS
 		FROM users u
 		LEFT JOIN listings l ON l.hostID = u.sin_id
 		LEFT JOIN address a ON l.latitude = a.latitude AND l.longitude = a.longitude
-		WHERE l.is_available = 'Yes'
+		WHERE l.is_available = TRUE
 		GROUP BY u.sin_id, a.country, a.city
 	);
 		
@@ -329,28 +316,29 @@ CREATE OR REPLACE VIEW host_market_share AS
 
 -- Get the total number of cancellations per host within a year
 CREATE OR REPLACE VIEW cancellations_per_host AS
-	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
-		FROM canceled_bookings c
-		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
+	(SELECT c.hostID, COUNT(*) AS num_cancellations
+		FROM booking_information c
+		WHERE c.booking_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 			AND c.status = 'Canceled by Host'
-		GROUP BY c.cancelerID
+		GROUP BY c.hostID
 	);
 		
 -- Get the total number of cancellations per renter within a year
 CREATE OR REPLACE VIEW cancellations_per_renter AS
-	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
-		FROM canceled_bookings c
-		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
+	(SELECT c.renterID, COUNT(*) AS num_cancellations
+		FROM booking_information c
+		WHERE c.booking_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
 			AND c.status = 'Canceled by Renter'
-		GROUP BY c.cancelerID
+		GROUP BY c.renterID
 	);
 		
 -- Get the total number of cancellations per user within a year
 CREATE OR REPLACE VIEW cancellations_per_renter AS
-	(SELECT c.cancelerID, COUNT(*) AS num_cancellations
-		FROM canceled_bookings c
-		WHERE c.canceled_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
-		GROUP BY c.cancelerID
+	(SELECT c.renterID, COUNT(*) AS num_cancellations
+		FROM booking_information c
+		WHERE c.booking_time >= DATE_ADD(CURDATE(), INTERVAL -1 YEAR)
+			AND (c.status = 'Canceled by Renter' OR c.status = 'Canceled by Host')
+		GROUP BY c.renterID
 	);
 		
 -- Assertions (Not supported in MySQL)
