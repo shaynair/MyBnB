@@ -333,6 +333,8 @@ public class Main {
                 } while (end == null);
                 if (l.intersects(begin, end)) {
                   outln("An availability already exists in that range.");
+                } else if (begin.getTime() >= end.getTime()) {
+                  outln("Out of bounds");
                 } else {
                   break;
                 }
@@ -639,7 +641,10 @@ public class Main {
             command = in.nextInt();
 
             if (command == 1) {
-
+              if (l.getAvailabilities().isEmpty()) {
+                outln("Not bookable.");
+                continue;
+              }
               for (int i = 0; i < l.getAvailabilities().size(); i++) {
                 Availability a = l.getAvailabilities().get(i);
                 outln((i + 1) + ": " + a.toString());
@@ -668,6 +673,10 @@ public class Main {
                   outln("Enter the number of guests.");
                   g = in.nextByte();
                 } while (g <= 0 || g > a.getGuests());
+                if (u.getCards().isEmpty()) {
+                  outln("You have no credit cards.");
+                  continue;
+                }
                 outln("Now, choose a credit card to pay with.");
                 for (int i = 0; i < u.getCards().size(); i++) {
                   outln((i + 1) + ": " + u.getCards().get(i).toString());
@@ -694,7 +703,8 @@ public class Main {
                   if (a.intersects(start, end)) {
                     outln("This intersects with another booking.");
                   } else if (start.getTime() < a.getStart().getTime()
-                          || end.getTime() > a.getEnd().getTime()) {
+                          || end.getTime() > a.getEnd().getTime()
+                          || start.getTime() >= end.getTime()) {
                     outln("This is out of bounds.");
                   } else {
                     break;
