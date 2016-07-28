@@ -30,7 +30,7 @@ import mybnb.struct.User;
  * The main instance that holds the data for this application.
  */
 public class Client {
-  
+
   // Logger for this class
   private static final Logger LOG = Logger.getLogger(Client.class.getName());
   // Database connection
@@ -62,7 +62,7 @@ public class Client {
   public Listing getCurrentListing() {
     return list;
   }
-  
+
   public ReportsFrame getReports() {
     return reports;
   }
@@ -132,6 +132,7 @@ public class Client {
       search.setVisible(false);
     }
   }
+
   /**
    * Creates and retrieves a user.
    *
@@ -144,7 +145,7 @@ public class Client {
     User ret = null;
     try {
       Connection con = sql.get();
-      
+
       try (PreparedStatement ps = con.prepareStatement("SELECT * FROM user_information "
               + "WHERE " + (id > 0 ? "sin_id" : "email") + " = ?")) {
         if (id > 0) {
@@ -179,7 +180,7 @@ public class Client {
   private User toUser(Connection con, ResultSet rs) throws SQLException {
     User ret = new User(toBasicUser(rs), toAddress(rs));
     int id = ret.getSIN();
-   
+
     try (PreparedStatement ps = con.prepareStatement("SELECT * FROM renter_payments "
             + "WHERE renterID = ?")) {
       ps.setInt(1, id);
@@ -352,6 +353,7 @@ public class Client {
 
   /**
    * Gets an address.
+   *
    * @param country
    * @param province
    * @param city
@@ -384,9 +386,10 @@ public class Client {
     }
     return ret;
   }
-  
+
   /**
    * Gets an address.
+   *
    * @param latitude
    * @param longitude
    * @return the address in the database
@@ -411,9 +414,10 @@ public class Client {
     }
     return ret;
   }
-  
+
   /**
    * Gets a listing
+   *
    * @param id
    * @return the listing in the database
    */
@@ -436,7 +440,7 @@ public class Client {
     }
     return ret;
   }
-  
+
   public CreditCard getCard(long id) {
     CreditCard ret = null;
     try {
@@ -456,9 +460,10 @@ public class Client {
     }
     return ret;
   }
-  
+
   /**
    * Gets an address.
+   *
    * @param postalCode
    * @return the address in the database
    */
@@ -484,9 +489,10 @@ public class Client {
     }
     return ret;
   }
-  
+
   /**
    * Gets an address.
+   *
    * @param address
    * @return the address in the database
    */
@@ -509,7 +515,7 @@ public class Client {
     }
     return search;
   }
-  
+
   public List<Address> findAddressByVicinity(double lat, double lon, double vicinity) {
     List<Address> search = new ArrayList<>();
     try {
@@ -530,7 +536,7 @@ public class Client {
     }
     return search;
   }
-  
+
   public List<Listing> searchListings(List<Address> search, int host) {
     List<Listing> ret = new ArrayList<>();
     try {
@@ -539,7 +545,7 @@ public class Client {
       try (PreparedStatement ps = con.prepareStatement("SELECT * FROM "
               + "listing_information WHERE latitude = ? AND longitude = ?"
               + " AND hostID != ?")) {
-        ps.setInt(3,  host);
+        ps.setInt(3, host);
         for (Address s : search) {
           ps.setDouble(1, s.getLatitude());
           ps.setDouble(2, s.getLongitude());
@@ -555,28 +561,28 @@ public class Client {
     }
     return ret;
   }
-  
+
   public void filterListings(List<Listing> input, Date begin,
-          Date end, boolean descPrice, Set<String> amenities, 
+          Date end, boolean descPrice, Set<String> amenities,
           double priceLow, double priceHigh, int beds, int bedrooms,
           int bathrooms, int guests) {
-    
+
     input.removeIf(listing -> {
-      return listing.getAveragePrice() < priceLow ||
-              listing.getAveragePrice() > priceHigh ||
-              (begin != null && end != null && 
-                  listing.getAvailability(begin, end) == null)
+      return listing.getAveragePrice() < priceLow
+              || listing.getAveragePrice() > priceHigh
+              || (begin != null && end != null
+              && listing.getAvailability(begin, end) == null)
               || !listing.hasAllAmenities(amenities)
               || (beds > 0 && listing.getBeds() < beds)
               || (bedrooms > 0 && listing.getBedrooms() < bedrooms)
               || (bathrooms > 0 && listing.getBathrooms() < bathrooms)
               || (guests > 0 && listing.getGuests() < guests);
     });
-    
-    input.sort((a, b) -> ((descPrice ? -1 : 1) * 
-            Double.compare(a.getAveragePrice(), b.getAveragePrice())));
+
+    input.sort((a, b) -> ((descPrice ? -1 : 1)
+            * Double.compare(a.getAveragePrice(), b.getAveragePrice())));
   }
-  
+
   public double suggestPrice(Listing l) {
     List<Double> ret = new ArrayList<>();
     try {
@@ -606,7 +612,7 @@ public class Client {
         ps.setString(3, l.getAddress().getCity());
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            if(l.getAmenities().contains(rs.getString("amenity"))) {
+            if (l.getAmenities().contains(rs.getString("amenity"))) {
               ret.add(rs.getDouble("average_price"));
             }
           }

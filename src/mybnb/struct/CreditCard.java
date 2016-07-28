@@ -115,7 +115,6 @@ public class CreditCard implements Updatable {
       ps.executeUpdate();
     }
   }
-  
 
   @Override
   public void update(Connection con) throws SQLException {
@@ -131,9 +130,8 @@ public class CreditCard implements Updatable {
 
   @Override
   public String toString() {
-    return getType() + " - " + getNumber() + ": Expires " + 
-                    DateConstants.serializeDate(getExpiry());
+    return getType() + " - " + getNumber() + ": Expires "
+            + DateConstants.serializeDate(getExpiry());
   }
-  
-  
+
 }

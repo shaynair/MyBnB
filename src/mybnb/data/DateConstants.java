@@ -11,7 +11,8 @@ import java.util.Locale;
  */
 public class DateConstants {
 
-  public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+  public static final int RENTER_MONTHS = 3;
 
   /**
    * Parses text into YYYY-MM-DD.
@@ -29,6 +30,7 @@ public class DateConstants {
 
   /**
    * Gets the difference in years between two dates.
+   *
    * @param first
    * @param last
    * @return the difference
@@ -45,7 +47,26 @@ public class DateConstants {
   }
 
   /**
+   * Gets the difference in months between two dates.
+   *
+   * @param first
+   * @param last
+   * @return the difference
+   */
+  public static int getDiffMonths(Date first, Date last) {
+    Calendar a = toCalendar(first);
+    Calendar b = toCalendar(last);
+    int diff = (b.get(Calendar.YEAR) - a.get(Calendar.YEAR)) * 12
+            + (b.get(Calendar.MONTH) - a.get(Calendar.MONTH));
+    if (a.get(Calendar.DATE) > b.get(Calendar.DATE)) {
+      diff--;
+    }
+    return diff;
+  }
+
+  /**
    * Converts a Date to a Calendar.
+   *
    * @param date
    * @return the calendar
    */
@@ -54,7 +75,7 @@ public class DateConstants {
     cal.setTime(date);
     return cal;
   }
-  
+
   public static String serializeDate(Date date) {
     return sdf.format(date);
   }

@@ -23,12 +23,12 @@ public class SQLConstants {
   public static final String SQL_ADDR = "127.0.0.1";
   public static final String SQL_SCHEMA = "mybnb";
   public static final String SQL_CLASS = "com.mysql.jdbc.Driver";
-  
+
   /**
    * The enum types to parse.
    */
   public static final Map<String, Collection<String>> ENUM_TABLES = new HashMap<>();
-  
+
   static {
     // <table name> -> <column names>
     ENUM_TABLES.put("renter_payments", Collections.singleton("card_type"));

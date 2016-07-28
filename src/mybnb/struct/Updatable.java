@@ -7,10 +7,12 @@ import java.sql.SQLException;
  * Struct for an updatable object.
  */
 public interface Updatable extends Insertable {
+
   /**
    * Inserts this into the database.
+   *
    * @param con
-   * @throws SQLException 
+   * @throws SQLException
    */
   public void update(Connection con) throws SQLException;
 }

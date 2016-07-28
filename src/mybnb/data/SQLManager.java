@@ -44,9 +44,10 @@ public class SQLManager {
       return con;
     }
   };
-  
+
   /**
    * Gets a new Connection local to this thread.
+   *
    * @return a new Connection.
    * @throws SQLException if the connection failed
    */
@@ -87,6 +88,7 @@ public class SQLManager {
 
   /**
    * Determines if a connection is alive or not.
+   *
    * @param c the connection to check
    * @return a boolean, true if it is alive, false if not
    * @throws SQLException if an error occurred

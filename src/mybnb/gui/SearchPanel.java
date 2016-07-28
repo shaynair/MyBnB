@@ -18,7 +18,7 @@ import mybnb.struct.Listing;
 public class SearchPanel extends javax.swing.JPanel {
 
   private List<Listing> listings = new ArrayList<>();
-  
+
   /**
    * Creates new form MainPanel
    */
@@ -327,7 +327,7 @@ public class SearchPanel extends javax.swing.JPanel {
     }
     amenities.setModel(lm);
   }
-  
+
   private void startSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startSearchActionPerformed
     populate();
     List<Address> addresses = null;
@@ -351,8 +351,8 @@ public class SearchPanel extends javax.swing.JPanel {
       }
       try {
         addresses = Client.get().findAddressByVicinity(
-                Double.parseDouble(latitude.getText()), 
-                Double.parseDouble(longitude.getText()), 
+                Double.parseDouble(latitude.getText()),
+                Double.parseDouble(longitude.getText()),
                 Double.parseDouble(vicinity.getText()));
       } catch (NumberFormatException ex) {
         error.setText("Please enter numbers.");
@@ -382,29 +382,34 @@ public class SearchPanel extends javax.swing.JPanel {
     try {
       priceMin = Double.parseDouble(priceLow.getText());
       priceMax = Double.parseDouble(priceHigh.getText());
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     try {
       nBeds = Integer.parseInt(beds.getText());
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     try {
       nBedrooms = Integer.parseInt(bedrooms.getText());
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     try {
       nBathrooms = Integer.parseInt(bathrooms.getText());
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
     try {
       nGuests = Integer.parseInt(guests.getText());
-    } catch (Exception e) {}
-    
-    List<Listing> listing = Client.get().searchListings(addresses, 
+    } catch (Exception e) {
+    }
+
+    List<Listing> listing = Client.get().searchListings(addresses,
             Client.get().getCurrentUser().getSIN());
     if (listing.isEmpty()) {
       error.setText("No listings found.");
       return;
     }
-    Client.get().filterListings(listing, begin, end, descPrice, amenityList, 
-          priceMin, priceMax, nBeds, nBedrooms, nBathrooms, nGuests);
-    
+    Client.get().filterListings(listing, begin, end, descPrice, amenityList,
+            priceMin, priceMax, nBeds, nBedrooms, nBathrooms, nGuests);
+
     if (listing.isEmpty()) {
       error.setText("Fields too restrictive.");
       return;
@@ -414,9 +419,9 @@ public class SearchPanel extends javax.swing.JPanel {
       listModel.addElement(l.toString());
     }
     results.setModel(listModel);
-    
+
     listings = listing;
-    
+
   }//GEN-LAST:event_startSearchActionPerformed
 
   private void dateEndActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateEndActionPerformed
@@ -441,7 +446,6 @@ public class SearchPanel extends javax.swing.JPanel {
   private void addressButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addressButtonActionPerformed
     populate();
   }//GEN-LAST:event_addressButtonActionPerformed
-
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JRadioButton addressButton;

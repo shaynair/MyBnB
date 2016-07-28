@@ -7,15 +7,16 @@ import mybnb.data.DateConstants;
  * A user struct.
  */
 public class BasicUser {
+
   protected String firstName;
   protected String lastName;
   protected String email;
   protected String occupation;
-  
+
   protected int sin;
   protected Date birthdate;
   protected double avgRating;
-  
+
   /**
    * Constructor for user.
    *
@@ -37,7 +38,7 @@ public class BasicUser {
     this.birthdate = birthdate;
     this.avgRating = avgRating;
   }
-  
+
   /**
    * Get the value of birthdate
    *
@@ -73,7 +74,7 @@ public class BasicUser {
   public void setSIN(int sin) {
     this.sin = sin;
   }
-  
+
   /**
    * Get the value of occupation
    *
@@ -148,6 +149,7 @@ public class BasicUser {
 
   /**
    * Returns avg rating
+   *
    * @return avg rating
    */
   public double getAvgRating() {
@@ -156,22 +158,22 @@ public class BasicUser {
 
   /**
    * Sets avg rating
-   * @param avgRating 
+   *
+   * @param avgRating
    */
   public void setAvgRating(double avgRating) {
     this.avgRating = avgRating;
   }
-  
+
   public double getAverageRating() {
     return avgRating;
   }
 
   @Override
   public String toString() {
-    return firstName + " " + lastName + " (" + email + "): " + occupation + 
-            " Birthday: " + DateConstants.serializeDate(birthdate) 
+    return firstName + " " + lastName + " (" + email + "): " + occupation
+            + " Birthday: " + DateConstants.serializeDate(birthdate)
             + ", Rating: " + getAverageRating() + "/5";
   }
-  
-  
+
 }

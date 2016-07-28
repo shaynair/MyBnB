@@ -15,7 +15,7 @@ import mybnb.data.SQLConstants;
  * Represents an availability.
  */
 public class Availability implements Deletable {
-  
+
   private int id;
   private Listing listing;
   private Date start;
@@ -28,6 +28,7 @@ public class Availability implements Deletable {
 
   /**
    * Generates a new availability.
+   *
    * @param id
    * @param listing
    * @param start
@@ -35,9 +36,9 @@ public class Availability implements Deletable {
    * @param type
    * @param price
    * @param guests
-   * @param available 
+   * @param available
    */
-  public Availability(int id, Listing listing, Date start, Date end, 
+  public Availability(int id, Listing listing, Date start, Date end,
           String type, double price, byte guests, boolean available) {
     this.id = id;
     this.listing = listing;
@@ -51,6 +52,7 @@ public class Availability implements Deletable {
 
   /**
    * Gets listing
+   *
    * @return listing
    */
   public Listing getListing() {
@@ -59,7 +61,8 @@ public class Availability implements Deletable {
 
   /**
    * Sets listing
-   * @param listing 
+   *
+   * @param listing
    */
   public void setListing(Listing listing) {
     this.listing = listing;
@@ -205,7 +208,7 @@ public class Availability implements Deletable {
     try (PreparedStatement ps = con.prepareStatement("INSERT INTO availability"
             + "(listingID, starts_on, ends_on, rent_type, daily_price, guests,"
             + " is_available)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?)", 
+            + " VALUES (?, ?, ?, ?, ?, ?, ?)",
             SQLConstants.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, listing.getId());
       ps.setDate(2, new java.sql.Date(start.getTime()));
@@ -215,7 +218,7 @@ public class Availability implements Deletable {
       ps.setByte(6, guests);
       ps.setBoolean(7, available);
       ps.executeUpdate();
-      
+
       try (ResultSet rs = ps.getGeneratedKeys()) {
         if (!rs.next()) {
           throw new SQLException("No generated keys");
@@ -227,7 +230,7 @@ public class Availability implements Deletable {
       b.insert(con);
     }
   }
-  
+
   @Override
   public void update(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("UPDATE availability SET "
@@ -246,7 +249,7 @@ public class Availability implements Deletable {
       b.update(con);
     }
   }
-  
+
   public boolean isNotBooked() {
     Calendar st = DateConstants.toCalendar(start);
     for (Booking b : bookings) {
@@ -280,7 +283,7 @@ public class Availability implements Deletable {
     s += " for up to " + guests + " guests";
     return s;
   }
-  
+
   @Override
   public void delete(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("DELETE FROM availability"
@@ -290,11 +293,11 @@ public class Availability implements Deletable {
       ps.executeUpdate();
     }
   }
-  
+
   public boolean intersects(Date begin, Date end) {
     for (Booking av : bookings) {
       if ((av.getStarts().before(end) || av.getStarts().equals(end))
-        && (av.getEnds().after(begin) || av.getEnds().equals(begin))) {
+              && (av.getEnds().after(begin) || av.getEnds().equals(begin))) {
         return true;
       }
     }

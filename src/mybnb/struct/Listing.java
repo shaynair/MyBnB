@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import mybnb.data.DateConstants;
 import mybnb.data.SQLConstants;
 
 /**
@@ -31,12 +32,14 @@ public class Listing implements Updatable {
   private double avgRating;
   private double avgPrice;
   private final Set<String> amenities = new HashSet<>();
-  
+
   private final List<Comment> comments = new ArrayList<>();
   private final List<Rating> ratings = new ArrayList<>();
   private final List<Availability> availabilities = new ArrayList<>();
+
   /**
    * Constructs a listing.
+   *
    * @param id
    * @param host
    * @param type
@@ -47,12 +50,12 @@ public class Listing implements Updatable {
    * @param beds
    * @param bedrooms
    * @param guests
-   * @param available 
+   * @param available
    * @param avgRating
    * @param avgPrice
    */
-  public Listing(int id, BasicUser host, String type, Address address, String title, 
-          String description, byte bathrooms, byte beds, byte bedrooms, byte guests, 
+  public Listing(int id, BasicUser host, String type, Address address, String title,
+          String description, byte bathrooms, byte beds, byte bedrooms, byte guests,
           boolean available, double avgRating, double avgPrice) {
     this.id = id;
     this.host = host;
@@ -71,13 +74,13 @@ public class Listing implements Updatable {
 
   /**
    * Gets availabilities.
+   *
    * @return availabilities
    */
   public List<Availability> getAvailabilities() {
     return availabilities;
   }
-  
-  
+
   /**
    * Get the value of ratings
    *
@@ -95,9 +98,10 @@ public class Listing implements Updatable {
   public List<Comment> getComments() {
     return comments;
   }
-  
+
   /**
    * Gets amenities.
+   *
    * @return the amenities
    */
   public Set<String> getAmenities() {
@@ -322,6 +326,7 @@ public class Listing implements Updatable {
 
   /**
    * Get avg rating
+   *
    * @return avg rating
    */
   public double getAvgRating() {
@@ -330,7 +335,8 @@ public class Listing implements Updatable {
 
   /**
    * Set avg rating
-   * @param avgRating 
+   *
+   * @param avgRating
    */
   public void setAvgRating(double avgRating) {
     this.avgRating = avgRating;
@@ -338,6 +344,7 @@ public class Listing implements Updatable {
 
   /**
    * Get avg Price
+   *
    * @return avg Price
    */
   public double getAvgPrice() {
@@ -346,14 +353,16 @@ public class Listing implements Updatable {
 
   /**
    * Set avg Price
+   *
    * @param avgPrice
    */
   public void setAvgPrice(double avgPrice) {
     this.avgPrice = avgPrice;
   }
-  
+
   /**
    * Get average price
+   *
    * @return average
    */
   public double getAveragePrice() {
@@ -363,9 +372,10 @@ public class Listing implements Updatable {
     return availabilities.stream().mapToDouble(a -> a.getPrice())
             .average().getAsDouble();
   }
-  
+
   /**
    * Get average rating
+   *
    * @return average
    */
   public double getAverageRating() {
@@ -375,28 +385,28 @@ public class Listing implements Updatable {
     return ratings.stream().mapToDouble(a -> a.getContent())
             .average().getAsDouble();
   }
-  
+
   public Availability getAvailability(Date begin, Date end) {
     for (Availability av : availabilities) {
       if ((av.getStart().after(begin) || av.getStart().equals(begin))
-        && (av.getEnd().before(end) || av.getEnd().equals(end))
+              && (av.getEnd().before(end) || av.getEnd().equals(end))
               && !av.isNotBooked()) {
         return av;
       }
     }
     return null;
   }
-  
+
   public boolean intersects(Date begin, Date end) {
     for (Availability av : availabilities) {
       if ((av.getStart().before(end) || av.getStart().equals(end))
-        && (av.getEnd().after(begin) || av.getEnd().equals(begin))) {
+              && (av.getEnd().after(begin) || av.getEnd().equals(begin))) {
         return true;
       }
     }
     return false;
   }
-  
+
   public boolean hasAllAmenities(Set<String> amen) {
     for (String s : amen) {
       if (!amenities.contains(s)) {
@@ -405,9 +415,15 @@ public class Listing implements Updatable {
     }
     return true;
   }
-  
+
   public boolean isEligibleRenter(int renter) {
+    Date now = new Date();
     for (Availability av : availabilities) {
+      if (!av.getStart().before(now)
+              || DateConstants.getDiffMonths(av.getEnd(), now)
+              >= DateConstants.RENTER_MONTHS) {
+        continue;
+      }
       for (Booking b : av.getBookings()) {
         if (b.getRenter().getSIN() == renter) {
           return true;
@@ -416,7 +432,7 @@ public class Listing implements Updatable {
     }
     return false;
   }
-  
+
   public boolean isEligibleCommenter(int renter) {
     for (Comment c : comments) {
       if (c.getOrigin() == renter) {
@@ -425,7 +441,7 @@ public class Listing implements Updatable {
     }
     return false;
   }
-  
+
   public boolean isEligibleRater(int renter) {
     for (Rating c : ratings) {
       if (c.getOrigin() == renter) {
@@ -434,14 +450,14 @@ public class Listing implements Updatable {
     }
     return false;
   }
-  
+
   @Override
   public void insert(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("INSERT INTO listings"
             + "(hostID, list_type, latitude, longitude, unit_number, title,"
             + " description, num_bedrooms, num_beds, num_bathrooms, max_guests,"
             + " is_available)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             SQLConstants.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, host.getSIN());
       ps.setString(2, getType());
@@ -456,7 +472,7 @@ public class Listing implements Updatable {
       ps.setByte(11, guests);
       ps.setBoolean(12, available);
       ps.executeUpdate();
-      
+
       try (ResultSet rs = ps.getGeneratedKeys()) {
         if (!rs.next()) {
           throw new SQLException("No generated keys");
@@ -475,7 +491,7 @@ public class Listing implements Updatable {
       r.insert(con);
     }
   }
-  
+
   @Override
   public void update(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("UPDATE listings SET "
@@ -504,7 +520,7 @@ public class Listing implements Updatable {
       a.update(con);
     }
   }
-  
+
   private void insertAmenities(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("INSERT INTO amenities"
             + "(listingID, amenity) VALUES (?, ?)")) {
@@ -518,8 +534,8 @@ public class Listing implements Updatable {
 
   @Override
   public String toString() {
-    return "[" + title + "] Rating: " + getAverageRating() + "/5, Price: " + 
-            getAveragePrice() + ", Type: " + type;
+    return "[" + title + "] Rating: " + getAverageRating() + "/5, Price: "
+            + getAveragePrice() + ", Type: " + type;
   }
-  
+
 }

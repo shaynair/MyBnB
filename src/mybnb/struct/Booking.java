@@ -25,6 +25,7 @@ public class Booking implements Updatable {
 
   /**
    * Creates a new booking.
+   *
    * @param id
    * @param availability
    * @param renter
@@ -32,10 +33,10 @@ public class Booking implements Updatable {
    * @param ends
    * @param status
    * @param guests
-   * @param card 
+   * @param card
    * @param totalPrice
    */
-  public Booking(int id, Availability availability, BasicUser renter, Date starts, Date ends, 
+  public Booking(int id, Availability availability, BasicUser renter, Date starts, Date ends,
           String status, byte guests, CreditCard card, double totalPrice) {
     this.id = id;
     this.availability = availability;
@@ -65,6 +66,7 @@ public class Booking implements Updatable {
   public void setTotalPrice(double totalPrice) {
     this.totalPrice = totalPrice;
   }
+
   /**
    * Get the value of availability
    *
@@ -214,7 +216,7 @@ public class Booking implements Updatable {
     try (PreparedStatement ps = con.prepareStatement("INSERT INTO bookings"
             + "(availabilityID, renterID, starts, ends, status, num_guests,"
             + " card_number)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?)", 
+            + " VALUES (?, ?, ?, ?, ?, ?, ?)",
             SQLConstants.RETURN_GENERATED_KEYS)) {
       ps.setInt(1, availability.getId());
       ps.setInt(2, renter.getSIN());
@@ -224,7 +226,7 @@ public class Booking implements Updatable {
       ps.setByte(6, guests);
       ps.setLong(7, card.getNumber());
       ps.executeUpdate();
-      
+
       try (ResultSet rs = ps.getGeneratedKeys()) {
         if (!rs.next()) {
           throw new SQLException("No generated keys");
@@ -233,7 +235,7 @@ public class Booking implements Updatable {
       }
     }
   }
-  
+
   @Override
   public void update(Connection con) throws SQLException {
     try (PreparedStatement ps = con.prepareStatement("UPDATE bookings SET "
@@ -250,7 +252,7 @@ public class Booking implements Updatable {
 
   @Override
   public String toString() {
-    return status + " from " + DateConstants.serializeDate(starts) + 
-            " to " + DateConstants.serializeDate(ends) + " by " + guests + " guests";
+    return status + " from " + DateConstants.serializeDate(starts)
+            + " to " + DateConstants.serializeDate(ends) + " by " + guests + " guests";
   }
 }

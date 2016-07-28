@@ -272,8 +272,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + "(" + 
-              c.getKey().getValue() + ") : " + c.getValue() + " listings");
+      lm.addElement(u.getFirstName() + " " + u.getLastName() + "("
+              + c.getKey().getValue() + ") : " + c.getValue() + " listings");
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankHostCountryActionPerformed
@@ -285,8 +285,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + "(" + 
-              c.getKey().getValue() + ") : " + c.getValue() + " listings");
+      lm.addElement(u.getFirstName() + " " + u.getLastName() + "("
+              + c.getKey().getValue() + ") : " + c.getValue() + " listings");
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankHostCityActionPerformed
@@ -298,8 +298,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + 
-              " : " + c.getValue() + " cancellations");
+      lm.addElement(u.getFirstName() + " " + u.getLastName()
+              + " : " + c.getValue() + " cancellations");
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankCancelHostActionPerformed
@@ -311,8 +311,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + 
-              " : " + c.getValue() + " cancellations");
+      lm.addElement(u.getFirstName() + " " + u.getLastName()
+              + " : " + c.getValue() + " cancellations");
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankCancelRenterActionPerformed
@@ -324,8 +324,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + "(" + 
-              c.getKey().getValue() + ") : " + (Math.round(c.getValue() * 100) / 100)
+      lm.addElement(u.getFirstName() + " " + u.getLastName() + "("
+              + c.getKey().getValue() + ") : " + (Math.round(c.getValue() * 100) / 100)
               + "% market share");
     }
     list.setModel(lm);
@@ -359,8 +359,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + 
-              " : " + c.getValue() + " bookings");
+      lm.addElement(u.getFirstName() + " " + u.getLastName()
+              + " : " + c.getValue() + " bookings");
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankRentersActionPerformed
@@ -377,8 +377,8 @@ public class ReportsPanel extends javax.swing.JPanel {
       if (u == null) {
         continue;
       }
-      lm.addElement(u.getFirstName() + " " + u.getLastName() + "(" + 
-              c.getKey().getValue() + ") : " + c.getValue() + " bookings");
+      lm.addElement(u.getFirstName() + " " + u.getLastName() + "("
+              + c.getKey().getValue() + ") : " + c.getValue() + " bookings");
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankRentersCityActionPerformed
@@ -408,7 +408,6 @@ public class ReportsPanel extends javax.swing.JPanel {
     }
     list.setModel(lm);
   }//GEN-LAST:event_rankBookingsPostalActionPerformed
-
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JTextField endDate;

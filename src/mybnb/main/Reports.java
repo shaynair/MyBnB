@@ -22,7 +22,7 @@ import mybnb.struct.Address;
 public class Reports {
 
   private static final Logger LOG = Logger.getLogger(Reports.class.getName());
-  
+
   public static List<Entry<String, Integer>> rankCountries() {
     List<Entry<String, Integer>> ret = new ArrayList<>();
     try {
@@ -33,7 +33,7 @@ public class Reports {
               + " ORDER BY num_listings DESC")) {
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            ret.add(new SimpleEntry<>(rs.getString("country"), 
+            ret.add(new SimpleEntry<>(rs.getString("country"),
                     rs.getInt("num_listings")));
           }
         }
@@ -43,7 +43,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static List<Entry<String, Integer>> rankCities() {
     List<Entry<String, Integer>> ret = new ArrayList<>();
     try {
@@ -54,8 +54,8 @@ public class Reports {
               + " ORDER BY num_listings DESC")) {
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            ret.add(new SimpleEntry<>(rs.getString("country") + ", " + 
-                    rs.getString("province") + ", " + rs.getString("city"), 
+            ret.add(new SimpleEntry<>(rs.getString("country") + ", "
+                    + rs.getString("province") + ", " + rs.getString("city"),
                     rs.getInt("num_listings")));
           }
         }
@@ -65,7 +65,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static List<Entry<String, Integer>> rankPostalCodes() {
     List<Entry<String, Integer>> ret = new ArrayList<>();
     try {
@@ -76,9 +76,9 @@ public class Reports {
               + " ORDER BY num_listings DESC")) {
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            ret.add(new SimpleEntry<>(rs.getString("country") + ", " + 
-                    rs.getString("province") + ", " + rs.getString("city")
-                    + ", " + rs.getString("postal_code"), 
+            ret.add(new SimpleEntry<>(rs.getString("country") + ", "
+                    + rs.getString("province") + ", " + rs.getString("city")
+                    + ", " + rs.getString("postal_code"),
                     rs.getInt("num_listings")));
           }
         }
@@ -88,6 +88,7 @@ public class Reports {
     }
     return ret;
   }
+
   public static List<Entry<Entry<Integer, String>, Integer>> rankHostsByCountry() {
     List<Entry<Entry<Integer, String>, Integer>> ret = new ArrayList<>();
     try {
@@ -120,7 +121,7 @@ public class Reports {
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
             ret.add(new SimpleEntry<>(new SimpleEntry<>(rs.getInt("hostID"),
-            rs.getString("country") + ", " + rs.getString("province") + ", " 
+                    rs.getString("country") + ", " + rs.getString("province") + ", "
                     + rs.getString("city")), rs.getInt("num_listings")));
           }
         }
@@ -152,7 +153,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static Map<String, Double> marketShareByHost(int hostID) {
     Map<String, Double> ret = new HashMap<>();
     try {
@@ -165,7 +166,7 @@ public class Reports {
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
             ret.put(
-              rs.getString("country") + ", " + rs.getString("province") + ", " 
+                    rs.getString("country") + ", " + rs.getString("province") + ", "
                     + rs.getString("city"), rs.getDouble("market_share"));
           }
         }
@@ -187,7 +188,7 @@ public class Reports {
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
             ret.add(new SimpleEntry<>(new SimpleEntry<>(rs.getInt("hostID"),
-              rs.getString("country") + ", " + rs.getString("province") + ", " 
+                    rs.getString("country") + ", " + rs.getString("province") + ", "
                     + rs.getString("city")), rs.getDouble("market_share")));
           }
         }
@@ -222,7 +223,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static List<Entry<Entry<Integer, String>, Integer>> rankRentersByCity(Date begin,
           Date end) {
     List<Entry<Entry<Integer, String>, Integer>> ret = new ArrayList<>();
@@ -239,7 +240,7 @@ public class Reports {
           while (rs.next()) {
             if (rs.getInt("c") >= 2) {
               ret.add(new SimpleEntry<>(new SimpleEntry<>(rs.getInt("renterID"),
-                rs.getString("country") + ", " + rs.getString("province") + ", " 
+                      rs.getString("country") + ", " + rs.getString("province") + ", "
                       + rs.getString("city")), rs.getInt("c")));
             }
           }
@@ -250,7 +251,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static List<Entry<String, Integer>> rankCityBookings(Date begin,
           Date end) {
     List<Entry<String, Integer>> ret = new ArrayList<>();
@@ -265,8 +266,8 @@ public class Reports {
         ps.setDate(2, new java.sql.Date(end.getTime()));
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            ret.add(new SimpleEntry<>(rs.getString("country") + ", " + 
-                    rs.getString("province") + ", " + rs.getString("city"),
+            ret.add(new SimpleEntry<>(rs.getString("country") + ", "
+                    + rs.getString("province") + ", " + rs.getString("city"),
                     rs.getInt("c")));
           }
         }
@@ -276,7 +277,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static List<Entry<String, Integer>> rankPostalCodeBookings(Date begin,
           Date end) {
     List<Entry<String, Integer>> ret = new ArrayList<>();
@@ -291,8 +292,8 @@ public class Reports {
         ps.setDate(2, new java.sql.Date(end.getTime()));
         try (ResultSet rs = ps.executeQuery()) {
           while (rs.next()) {
-            ret.add(new SimpleEntry<>(rs.getString("country") + ", " + 
-                    rs.getString("province") + ", " + rs.getString("city")
+            ret.add(new SimpleEntry<>(rs.getString("country") + ", "
+                    + rs.getString("province") + ", " + rs.getString("city")
                     + ", " + rs.getString("postal_code"), rs.getInt("c")));
           }
         }
@@ -302,7 +303,7 @@ public class Reports {
     }
     return ret;
   }
-  
+
   public static Map<Integer, List<Entry<String, Integer>>> getWordClouds() {
     Map<Integer, Map<String, Integer>> arr = new HashMap<>();
     Map<Integer, List<Entry<String, Integer>>> val = new HashMap<>();
@@ -316,7 +317,7 @@ public class Reports {
             int listing = rs.getInt("listingID");
             String comment = rs.getString("content").toLowerCase()
                     .replaceAll("[^a-z ]", "");
-            
+
             Map<String, Integer> ret = arr.get(listing);
             if (ret == null) {
               ret = new HashMap<>();

@@ -19,15 +19,16 @@ public class Address implements Insertable {
 
   /**
    * Constructor for address.
+   *
    * @param latitude
    * @param longitude
    * @param country
    * @param province
    * @param city
    * @param street
-   * @param postalCode 
+   * @param postalCode
    */
-  public Address(double latitude, double longitude, String country, String province, 
+  public Address(double latitude, double longitude, String country, String province,
           String city, String street, String postalCode) {
     this.country = country;
     this.city = city;
@@ -163,19 +164,20 @@ public class Address implements Insertable {
   public void setCountry(String country) {
     this.country = country;
   }
-  
+
   /**
    * Gets kilometers distance using Haversine formula.
+   *
    * @param lat2
    * @param lon2
    * @return km distance
    */
   public double calcDistance(double lat2, double lon2) {
     final double R = 6371; // Radius of the earth in km
-    double dLat = Math.sin(Math.toRadians(lat2 - latitude) / 2); 
-    double dLon = Math.sin(Math.toRadians(lon2 - longitude) / 2); 
-    double a = dLat * dLat + dLon * dLon *
-      Math.cos(Math.toRadians(latitude)) * Math.cos(Math.toRadians(lat2)); 
+    double dLat = Math.sin(Math.toRadians(lat2 - latitude) / 2);
+    double dLon = Math.sin(Math.toRadians(lon2 - longitude) / 2);
+    double a = dLat * dLat + dLon * dLon
+            * Math.cos(Math.toRadians(latitude)) * Math.cos(Math.toRadians(lat2));
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
@@ -184,7 +186,7 @@ public class Address implements Insertable {
     try (PreparedStatement ps = con.prepareStatement("INSERT INTO address"
             + "(latitude, longitude, country, province, city, street_address, postal_code)"
             + " VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-      
+
       ps.setDouble(1, latitude);
       ps.setDouble(2, longitude);
       ps.setString(3, country);
@@ -193,12 +195,12 @@ public class Address implements Insertable {
       ps.setString(6, street);
       ps.setString(7, postalCode);
       ps.executeUpdate();
-    } 
+    }
   }
 
   @Override
   public String toString() {
-    return country + ", " + province + ", " + city + " (" + latitude + ", " + 
-            longitude + ") " + street + ", " + postalCode;
+    return country + ", " + province + ", " + city + " (" + latitude + ", "
+            + longitude + ") " + street + ", " + postalCode;
   }
 }

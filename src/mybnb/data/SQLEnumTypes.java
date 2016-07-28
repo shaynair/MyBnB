@@ -32,7 +32,7 @@ public class SQLEnumTypes {
    */
   public void initialize() throws SQLException {
     Connection con = Client.getConnector().get();
-    
+
     for (Entry<String, Collection<String>> enumTable
             : SQLConstants.ENUM_TABLES.entrySet()) {
 

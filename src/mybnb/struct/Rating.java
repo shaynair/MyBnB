@@ -8,7 +8,7 @@ import java.sql.SQLException;
  * A rating.
  */
 public class Rating implements Insertable {
- 
+
   private int origin;
   private int target;
   private byte content;
@@ -16,9 +16,10 @@ public class Rating implements Insertable {
 
   /**
    * Creates a rating.
+   *
    * @param target
    * @param origin
-   * @param content 
+   * @param content
    * @param forListing
    */
   public Rating(int target, int origin, byte content, boolean forListing) {
@@ -66,6 +67,7 @@ public class Rating implements Insertable {
 
   /**
    * Gets target.
+   *
    * @return target
    */
   public int getTarget() {
@@ -74,7 +76,8 @@ public class Rating implements Insertable {
 
   /**
    * Sets target.
-   * @param target 
+   *
+   * @param target
    */
   public void setTarget(int target) {
     this.target = target;
@@ -82,6 +85,7 @@ public class Rating implements Insertable {
 
   /**
    * Gets if it is for listing.
+   *
    * @return is for listing
    */
   public boolean isForListing() {
@@ -90,12 +94,12 @@ public class Rating implements Insertable {
 
   /**
    * Sets for listing.
-   * @param forListing 
+   *
+   * @param forListing
    */
   public void setForListing(boolean forListing) {
     this.forListing = forListing;
   }
-  
 
   @Override
   public void insert(Connection con) throws SQLException {

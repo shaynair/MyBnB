@@ -471,11 +471,11 @@ public class LoginPanel extends javax.swing.JPanel {
     sinText.setEnabled(state == 1);
     this.register.setEnabled(state == 1);
     registerButton.setSelected(state == 1);
-    
+
     login.setEnabled(state == 0);
     loginEmailText.setEnabled(state == 0);
     loginButton.setSelected(state == 0);
-    
+
     delete.setEnabled(state == 2);
     deleteEmailText.setEnabled(state == 2);
     deleteButton.setSelected(state == 2);
